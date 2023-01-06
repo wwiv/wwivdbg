@@ -41,8 +41,9 @@
 #define Uses_TStatusLine
 #define Uses_TSubMenu
 
-#include <tvision/tv.h>
-
+#include "tvision/tv.h"
+#include "commands.h"
+#include "stack.h"
 #include "wwivdbg.h"
 #include <memory>
 #include <sstream>
@@ -117,35 +118,35 @@ TDialog *createReplaceDialog() {
 TMenuBar *TDebuggerApp::initMenuBar(TRect r) {
   TSubMenu &menuFile =
       *new TSubMenu("~F~ile", kbAltF) +
-      *new TMenuItem("~O~pen", cmOpen, kbF3, hcNoContext, "F3") +
+      *new TMenuItem("~O~pen", cmOpen, kbCtrlO, hcNoContext, "Ctrl-O") +
       *new TMenuItem("~N~ew", cmNew, kbCtrlN, hcNoContext, "Ctrl-N") +
-      *new TMenuItem("~S~ave", cmSave, kbF2, hcNoContext, "F2") +
+      *new TMenuItem("~S~ave", cmSave, kbCtrlS, hcNoContext, "Ctrl-S") +
       *new TMenuItem("S~a~ve as...", cmSaveAs, kbNoKey) + newLine() +
       *new TMenuItem("~C~hange dir...", cmChangeDrct, kbNoKey) +
       *new TMenuItem("~D~OS shell", cmDosShell, kbNoKey) +
-      *new TMenuItem("E~x~it", cmQuit, kbCtrlQ, hcNoContext, "Alt-X");
+      *new TMenuItem("E~x~it", cmQuit, kbAltF4, hcNoContext, "Alt-F4");
 
   TSubMenu &menuEdit =
       *new TSubMenu("~E~dit", kbAltE) +
-      *new TMenuItem("~U~ndo", cmUndo, kbCtrlU, hcNoContext, "Ctrl-U") +
+      *new TMenuItem("~U~ndo", cmUndo, kbCtrlZ, hcNoContext, "Ctrl-Z") +
       newLine() +
-      *new TMenuItem("Cu~t~", cmCut, kbShiftDel, hcNoContext, "Shift-Del") +
-      *new TMenuItem("~C~opy", cmCopy, kbCtrlIns, hcNoContext, "Ctrl-Ins") +
-      *new TMenuItem("~P~aste", cmPaste, kbShiftIns, hcNoContext, "Shift-Ins") +
+      *new TMenuItem("Cu~t~", cmCut, kbCtrlX, hcNoContext, "Ctrl-X") +
+      *new TMenuItem("~C~opy", cmCopy, kbCtrlC, hcNoContext, "Ctrl-C") +
+      *new TMenuItem("~P~aste", cmPaste, kbCtrlV, hcNoContext, "Ctrl-V") +
       newLine() +
-      *new TMenuItem("~C~lear", cmClear, kbCtrlDel, hcNoContext, "Ctrl-Del");
+      *new TMenuItem("~C~lear", cmClear, kbNoKey);
 
   TSubMenu &menuSearch =
       *new TSubMenu("~S~earch", kbAltS) +
-      *new TMenuItem("~F~ind...", cmFind, kbNoKey) +
-      *new TMenuItem("~R~eplace...", cmReplace, kbNoKey) +
-      *new TMenuItem("~S~earch again", cmSearchAgain, kbNoKey);
+      *new TMenuItem("~F~ind...", cmFind, kbCtrlF,  hcNoContext, "Ctrl-F") +
+      *new TMenuItem("~R~eplace...", cmReplace, kbCtrlH, hcNoContext, "Ctrl-H") +
+      *new TMenuItem("~S~earch again", cmSearchAgain, kbF3, hcNoContext, "F3");
 
   TSubMenu &menuView =
       *new TSubMenu("~V~iew", kbAltV) +
-      *new TMenuItem("~B~reakpoints...", cmViewBreakpoints, kbNoKey) +
-      *new TMenuItem("~S~tack...", cmViewStack, kbNoKey) +
-      *new TMenuItem("S~o~urce", cmViewSource, kbNoKey);
+      *new TMenuItem("~B~reakpoints...", cmViewBreakpoints, kbAltB, hcNoContext, "Alt-B") +
+      *new TMenuItem("S~t~ack...", cmViewStack, kbAltT, hcNoContext, "Alt-T") +
+      *new TMenuItem("S~o~urce", cmViewSource, kbAltO, hcNoContext, "Alt-O");
 
   TSubMenu &menuWindows =
       *new TSubMenu("~W~indows", kbAltW) +
@@ -158,7 +159,7 @@ TMenuBar *TDebuggerApp::initMenuBar(TRect r) {
       *new TMenuItem("~P~revious", cmPrev, kbShiftF6, hcNoContext, "Shift-F6") +
       *new TMenuItem("~C~lose", cmClose, kbCtrlW, hcNoContext, "Ctrl+W");
 
-  TSubMenu &menuHelp = *new TSubMenu("~H~elp", kbAltV) +
+  TSubMenu &menuHelp = *new TSubMenu("~H~elp", kbAltH) +
                        *new TMenuItem("~A~bout...", cmHelpAbout, kbNoKey);
 
   r.b.y = r.a.y + 1;
@@ -184,6 +185,16 @@ TStatusLine *TDebuggerApp::initStatusLine(TRect r) {
 
 void TDebuggerApp::outOfMemory() {
   messageBox("Not enough memory for this operation.", mfError | mfOKButton);
+}
+
+void TDebuggerApp::getEvent(TEvent& event) {
+
+  TApplication::getEvent(event);
+}
+
+void TDebuggerApp::idle() { 
+  // TODO(rushfan): Look for debug messages then broadcast to right places.
+  TApplication::idle(); 
 }
 
 ushort doEditDialog(int dialog, ...) {
@@ -257,8 +268,6 @@ ushort doEditDialog(int dialog, ...) {
   return cmCancel;
 }
 
-//#pragma warn.rvl 
-
 TEditWindow *TDebuggerApp::openEditor(const std::string& fileName, Boolean visible) {
   TRect r = deskTop->getExtent();
   TView *p = validView(new TEditWindow(r, fileName, wnNoNumber));
@@ -267,6 +276,16 @@ TEditWindow *TDebuggerApp::openEditor(const std::string& fileName, Boolean visib
   }
   deskTop->insert(p);
   return (TEditWindow *)p;
+}
+
+int TDebuggerApp::openStackWindow() { 
+  TRect r = deskTop->getExtent(); 
+  // Move down 70%
+  r.a.y = (r.b.y * .7);
+  auto wn = ++windowNumber_;
+  auto *window = new TStackWindow(r, "Call Stack", wn);
+  deskTop->insert(window);
+  return wn;
 }
 
 TDebuggerApp::TDebuggerApp(int argc, char **argv)
@@ -325,6 +344,14 @@ void TDebuggerApp::handleEvent(TEvent &event) {
   case cmChangeDrct:
     changeDir();
     break;
+  case cmViewStack: {
+    if (auto *o = message(deskTop, evBroadcast, cmFindWindow, nullptr)) {
+      TWindow *window = reinterpret_cast<TWindow *>(o);
+      window->select();
+    } else {
+      openStackWindow();
+    }
+  } break;
   case cmHelpAbout:
     ShowAboutBox();
     break;

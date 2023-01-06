@@ -11,7 +11,7 @@ project(wwivdbg CXX)
 find_package(fmt CONFIG REQUIRED)
 find_package(tvision CONFIG REQUIRED)
 
-add_executable(wwivdbg src/wwivdbg.cpp)
+add_executable(wwivdbg "src/wwivdbg.cpp" "src/stack.cpp" "src/commands.h")
 target_compile_features(wwivdbg PRIVATE cxx_std_17)
 
 target_link_libraries(wwivdbg PRIVATE fmt::fmt tvision::tvision)

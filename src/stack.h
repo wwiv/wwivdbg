@@ -14,41 +14,23 @@
  * language governing permissions and limitations under the License.
  */
 
-#ifndef INCLUDED_WWIVDBG_WWIVDBG_H
-#define INCLUDED_WWIVDBG_WWIVDBG_H
+#ifndef INCLUDED_WWIVDBG_STACK_H
+#define INCLUDED_WWIVDBG_STACK_H
 
+#include "tvision/tv.h"
 #include <string>
 
-class TMenuBar;
-class TStatusLine;
-class TEditWindow;
-class TDialog;
-
-class TDebuggerApp : public TApplication {
-
+class TStackInterior : public TView {
 public:
-  TDebuggerApp(int argc, char **argv);
-
-  virtual void handleEvent(TEvent &event) override;
-  static TMenuBar *initMenuBar(TRect);
-  static TStatusLine *initStatusLine(TRect);
-  virtual void outOfMemory() override;
-  virtual void getEvent(TEvent &event) override;
-  virtual void idle() override;
-
-private:
-  TEditWindow *openEditor(const std::string& fileName, Boolean visible);
-  int openStackWindow();
-  void fileOpen();
-  void fileNew();
-  void changeDir();
-
-  void ShowAboutBox();
-
-  int windowNumber_{0};
+  TStackInterior(const TRect &bounds);
+  virtual void draw();
 };
 
-TDialog *createFindDialog();
-TDialog *createReplaceDialog();
+class TStackWindow : public TWindow {
+public:
+  TStackWindow(const TRect &r, const std::string &title, int windowNumber);
+  virtual void handleEvent(TEvent &event) override;
+  ~TStackWindow();
+};
 
 #endif
