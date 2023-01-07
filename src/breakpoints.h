@@ -14,8 +14,8 @@
  * language governing permissions and limitations under the License.
  */
 
-#ifndef INCLUDED_WWIVDBG_SOURCE_H
-#define INCLUDED_WWIVDBG_SOURCE_H
+#ifndef INCLUDED_WWIVDBG_BREAKPOINTS_H
+#define INCLUDED_WWIVDBG_BREAKPOINTS_H
 
 #define Uses_TScrollBar
 #define Uses_TRect
@@ -27,11 +27,11 @@
 #include <string>
 #include <vector>
 
-class TSourcePane : public TScroller {
+class TBreakpointsPane : public TScroller {
 
 public:
-  TSourcePane(const TRect &bounds, TScrollBar *hsb, TScrollBar *vsb);
-  ~TSourcePane() = default;
+  TBreakpointsPane(const TRect &bounds, TScrollBar *hsb, TScrollBar *vsb);
+  ~TBreakpointsPane() = default;
   virtual void draw();
   void SetText(const std::vector<std::string> &text);
 
@@ -39,13 +39,13 @@ private:
   std::vector<std::string> lines;
 };
 
-class TSourceWindow : public TWindow {
-  TSourcePane *fp;
+class TBreakpointsWindow : public TWindow {
+  TBreakpointsPane *fp;
   TScrollBar *hsb, *vsb;
 
 public:
-  TSourceWindow(TRect r);
-  ~TSourceWindow();
+  TBreakpointsWindow(TRect r);
+  ~TBreakpointsWindow();
 
   virtual void handleEvent(TEvent &event) override;
 

@@ -83,6 +83,14 @@ TMenuBar *CreateMenuBar(TRect &r) {
       *new TMenuItem("S~t~ack...", cmViewStack, kbAltT, hcNoContext, "Alt-T") +
       *new TMenuItem("S~o~urce", cmViewSource, kbAltO, hcNoContext, "Alt-O");
 
+  TSubMenu &menuDebug =
+      *new TSubMenu("~D~ebug", kbAltD) +
+      *new TMenuItem("~R~un", cmDebugRun, kbF9, hcNoContext, "F9") +
+      *new TMenuItem("~T~race Into", cmDebugTraceIn, kbF7, hcNoContext, "F7") +
+      *new TMenuItem("~S~tep Over", cmDebugStepOver, kbF8, hcNoContext, "F8") +
+      newLine() + *new TMenuItem("~A~ttach to BBS...", cmDebugAttach, kbNoKey);
+
+
   TSubMenu &menuWindows =
       *new TSubMenu("~W~indows", kbAltW) +
       *new TMenuItem("~S~ize/move", cmResize, kbCtrlF5, hcNoContext,
@@ -99,7 +107,7 @@ TMenuBar *CreateMenuBar(TRect &r) {
 
   r.b.y = r.a.y + 1;
   return new TMenuBar(r, menuFile + menuEdit + menuSearch + menuView +
-                             menuWindows + menuHelp);
+                             menuDebug + menuWindows + menuHelp);
 }
 
 
@@ -107,11 +115,11 @@ TStatusLine *CreateStatusLine(TRect &r) {
   r.a.y = r.b.y - 1;
   return new TStatusLine(
       r, *new TStatusDef(0, 0xFFFF) + *new TStatusItem(0, kbAltX, cmQuit) +
-             *new TStatusItem("~F2~ Save", kbF2, cmSave) +
-             *new TStatusItem("~F3~ Open", kbF3, cmOpen) +
+             //*new TStatusItem("~F2~ Save", kbF2, cmSave) +
+             //*new TStatusItem("~F3~ Open", kbF3, cmOpen) +
              *new TStatusItem("~Ctrl-W~ Close", kbAltF3, cmClose) +
              *new TStatusItem("~F5~ Zoom", kbF5, cmZoom) +
-             *new TStatusItem("~F6~ Next", kbF6, cmNext) +
+             //*new TStatusItem("~F6~ Next", kbF6, cmNext) +
              *new TStatusItem("~F10~ Menu", kbF10, cmMenu) +
              *new TStatusItem(0, kbShiftDel, cmCut) +
              *new TStatusItem(0, kbCtrlIns, cmCopy) +

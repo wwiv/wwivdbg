@@ -42,6 +42,7 @@
 #define Uses_TSubMenu
 
 #include "tvision/tv.h"
+#include "breakpoints.h"
 #include "commands.h"
 #include "editor.h"
 #include "menu.h"
@@ -120,10 +121,7 @@ TStackWindow *TDebuggerApp::findStackWindow() {
     window->select();
     return window;
   } 
-  return openStackWindow();
-}
-
-TStackWindow *TDebuggerApp::openStackWindow() {
+  //openStackWindow
   TRect r = deskTop->getExtent();
   // Move down 70%
   r.a.y = (r.b.y * .7);
@@ -141,14 +139,30 @@ TSourceWindow* TDebuggerApp::findSourceWindow() {
     window->select();
     return window;
   }
-  return openSourceWindow();
-}
-
-TSourceWindow *TDebuggerApp::openSourceWindow() {
+  
+  // openSourceWindow(
   TRect r = deskTop->getExtent();
-  // Move down 70%
+  // cap botton at 70%
   r.b.y = r.b.y * .7;
   auto *window = new TSourceWindow(r);
+  deskTop->insert(window);
+  return window;
+}
+
+TBreakpointsWindow *TDebuggerApp::findBreakpointsWindow() {
+  ptrdiff_t cmd = cmViewBreakpoints;
+  if (auto *o = message(deskTop, evBroadcast, cmFindWindow,
+                        reinterpret_cast<void *>(cmd))) {
+    TBreakpointsWindow *window = reinterpret_cast<TBreakpointsWindow *>(o);
+    window->select();
+    return window;
+  }
+
+  // create breakpoints window
+  TRect r = deskTop->getExtent();
+  // Move down 70%
+  r.a.y = (r.b.y * .7);
+  auto *window = new TBreakpointsWindow(r);
   deskTop->insert(window);
   return window;
 }
@@ -158,12 +172,6 @@ TDebuggerApp::TDebuggerApp(int argc, char **argv)
                 TDebuggerApp::initDeskTop),
       TApplication() {
   UpdateInitialEditorCommandState(this);
-
-  // TODO(rushfan): We should figure out a new command line strategy.
-  // Open all files passed on the commandline
-  //while (--argc > 0) {         
-  //  openEditor(*++argv, True);
-  //}
   cascade();
 
   debug_ = std::make_unique<DebugProtocol>();
@@ -204,10 +212,13 @@ void TDebuggerApp::handleEvent(TEvent &event) {
   case cmViewStack: {
     findStackWindow();
   } break;
+  case cmViewBreakpoints: {
+    findBreakpointsWindow();
+  } break;
   case cmViewSource: {
     auto* s = findSourceWindow();
-    s->set_text({
-        "1",
+    s->SetText({
+        "1ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZXXXXXXXXXXXXXXXXXXXXXXXXXXXXYYYYYYYYYYYYYYYYYYYYYYYYYYYY",
         "2",
         "3",
         "4",
@@ -220,6 +231,15 @@ void TDebuggerApp::handleEvent(TEvent &event) {
         "21", "22", "23", "24", "25", "26", "27", "28", "29", "30"
     });
   } break;
+  case cmDebugRun:
+    messageBox("Implement Run", mfOKButton | mfError);
+    break;
+  case cmDebugTraceIn:
+    messageBox("Implement RunTraceIn", mfOKButton | mfError);
+    break;
+  case cmDebugStepOver:
+    messageBox("Implement RunStepOver", mfOKButton | mfError);
+    break;
   case cmHelpAbout:
     ShowAboutBox();
     break;

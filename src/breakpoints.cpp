@@ -42,19 +42,19 @@
 
 #include "tvision/tv.h"
 #include "commands.h"
-#include "source.h"
+#include "breakpoints.h"
 #include "utils.h"
 #include <sstream>
 #include <string>
 
 
-TSourcePane::TSourcePane(const TRect &bounds, TScrollBar *hsb, TScrollBar *vsb)
+TBreakpointsPane::TBreakpointsPane(const TRect &bounds, TScrollBar *hsb, TScrollBar *vsb)
     : TScroller(bounds, hsb, vsb) {
   options |= ofFramed;
   growMode = gfGrowHiY | gfGrowHiX | gfFixed;
 }
 
-void TSourcePane::SetText(const std::vector<std::string> &text) {
+void TBreakpointsPane::SetText(const std::vector<std::string> &text) {
   lines = text;
   auto max_line_len = 0;
   for (const auto &l : lines) {
@@ -66,7 +66,7 @@ void TSourcePane::SetText(const std::vector<std::string> &text) {
   draw();
 }
 
-void TSourcePane::draw() { 
+void TBreakpointsPane::draw() { 
   auto color = getColor(0x0301); 
  for (int i = 0; i < size.y; i++) {
     TDrawBuffer b;
@@ -86,18 +86,18 @@ void TSourcePane::draw() {
   }
 }
 
-TSourceWindow::TSourceWindow(TRect r)
+TBreakpointsWindow::TBreakpointsWindow(TRect r)
     : TWindowInit(TWindow::initFrame),
-      TWindow(r, "Source", 0) {
+      TWindow(r, "Breakpoints", 0) {
 
   hsb = standardScrollBar(sbHorizontal | sbHandleKeyboard);
   vsb = standardScrollBar(sbVertical | sbHandleKeyboard);
-  insert(fp = new TSourcePane(getClipRect().grow(-1, -1), hsb, vsb));
+  insert(fp = new TBreakpointsPane(getClipRect().grow(-1, -1), hsb, vsb));
 }
 
-TSourceWindow ::~TSourceWindow() = default;
+TBreakpointsWindow ::~TBreakpointsWindow() = default;
 
-void TSourceWindow::handleEvent(TEvent &event) {
+void TBreakpointsWindow::handleEvent(TEvent &event) {
   // Only handle broadcast events in here for now.
   if (event.what != evBroadcast) {
     TWindow::handleEvent(event);
@@ -105,7 +105,7 @@ void TSourceWindow::handleEvent(TEvent &event) {
   }
   switch (event.message.command) {
   case cmFindWindow:
-    if (event.message.infoInt == cmViewSource) {
+    if (event.message.infoInt == cmViewBreakpoints) {
       clearEvent(event);
       return;
     }
@@ -113,6 +113,6 @@ void TSourceWindow::handleEvent(TEvent &event) {
   TWindow::handleEvent(event);
 }
 
-void TSourceWindow::SetText(const std::vector<std::string> &text) {
+void TBreakpointsWindow::SetText(const std::vector<std::string> &text) {
   fp->SetText(text);
 }

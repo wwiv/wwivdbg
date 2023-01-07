@@ -25,7 +25,14 @@ constexpr int cmViewBreakpoints = 103;
 constexpr int cmViewStack = 104;
 constexpr int cmViewSource = 105;
 // Help
-constexpr int cmHelpAbout = 106;
+constexpr int cmHelpAbout = 130;
+
+// View
+constexpr int cmDebugRun = 110;
+constexpr int cmDebugTraceIn = 111;
+constexpr int cmDebugStepOver = 112;
+constexpr int cmDebugAttach = 113;
+
 
 // Other commands
 constexpr int cmFindWindow = 1000;

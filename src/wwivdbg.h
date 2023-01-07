@@ -27,6 +27,10 @@ class TStatusLine;
 class TEditWindow;
 class TDialog;
 
+class TBreakpointsWindow;
+class TSourceWindow;
+class TStackWindow;
+
 class TDebuggerApp : public TApplication {
 
 public:
@@ -43,9 +47,8 @@ public:
 private:
   TEditWindow *openEditor(const std::string& fileName, Boolean visible);
   TStackWindow* findStackWindow();
-  TStackWindow *openStackWindow();
   TSourceWindow* findSourceWindow();
-  TSourceWindow *openSourceWindow();
+  TBreakpointsWindow* findBreakpointsWindow();
   void fileOpen();
   void fileNew();
   void changeDir();
