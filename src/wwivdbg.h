@@ -17,7 +17,10 @@
 #ifndef INCLUDED_WWIVDBG_WWIVDBG_H
 #define INCLUDED_WWIVDBG_WWIVDBG_H
 
+#include <memory>
 #include <string>
+
+class DebugProtocol;
 
 class TMenuBar;
 class TStatusLine;
@@ -28,6 +31,7 @@ class TDebuggerApp : public TApplication {
 
 public:
   TDebuggerApp(int argc, char **argv);
+  ~TDebuggerApp();
 
   virtual void handleEvent(TEvent &event) override;
   static TMenuBar *initMenuBar(TRect);
@@ -46,6 +50,7 @@ private:
   void ShowAboutBox();
 
   int windowNumber_{0};
+  std::unique_ptr<DebugProtocol> debug_;
 };
 
 TDialog *createFindDialog();
