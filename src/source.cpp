@@ -13,7 +13,6 @@
  * either  express  or implied.  See  the  License for  the specific
  * language governing permissions and limitations under the License.
  */
-
 #define Uses_MsgBox
 #define Uses_TApplication
 #define Uses_TButton
@@ -42,40 +41,66 @@
 #define Uses_TSubMenu
 
 #include "tvision/tv.h"
-
 #include "commands.h"
-#include "stack.h"
-#include <memory>
+#include "source.h"
+#include "utils.h"
 #include <sstream>
 #include <string>
 
-TStackInterior::TStackInterior(const TRect &r) : TView(r) {
-  growMode = gfGrowHiX | gfGrowHiY;
+
+TSourcePane::TSourcePane(const TRect &bounds, TScrollBar *hsb, TScrollBar *vsb)
+    : TScroller(bounds, hsb, vsb) {
   options |= ofFramed;
+  growMode = gfGrowHiY | gfGrowHiX | gfFixed;
 }
 
-void TStackInterior::draw() {
-  TView::draw();
-  writeStr(2, 1, "Hello World", 1);
+void TSourcePane::set_text(const std::vector<std::string> &text) {
+  lines = text;
+  auto max_line_len = 0;
+  setLimit(max_line_len, lines.size());
+  draw();
 }
 
-TStackWindow::TStackWindow(const TRect &r, const std::string &title,
-                           int windowNumber)
-    : TWindowInit(&TWindow::initFrame), TWindow(r, title, windowNumber) {
-  auto inner = getClipRect();
-  inner.grow(-1, -1);
-  insert(new TStackInterior(inner));
-};
+void TSourcePane::draw() { 
+  auto color = getColor(0x0301); 
+ for (int i = 0; i < size.y; i++) {
+    TDrawBuffer b;
+    b.moveChar(0, ' ', color, size.x);
+    int j = i + delta.y;
+    if (j < lines.size()) {
+      // make sure we have this line.
+      b.moveStr(0, lines.at(j), color);
+    }
+    writeBuf(0, i, size.x, 1, b);
+  }
+}
 
-void TStackWindow::handleEvent(TEvent& event) {
+TSourceWindow::TSourceWindow(TRect r)
+    : TWindowInit(TWindow::initFrame),
+      TWindow(r, "Source", 0) {
+
+  hsb = standardScrollBar(sbHorizontal | sbHandleKeyboard);
+  vsb = standardScrollBar(sbVertical | sbHandleKeyboard);
+  TRect ir = getClipRect();
+  ir.grow(-1, -1);
+  fp = new TSourcePane(ir, hsb, vsb);
+
+  ////insert(hsb);
+  //insert(vsb);
+  insert(fp);
+}
+
+TSourceWindow ::~TSourceWindow() {}
+
+void TSourceWindow::handleEvent(TEvent &event) {
   // Only handle broadcast events in here for now.
   if (event.what != evBroadcast) {
     TWindow::handleEvent(event);
     return;
   }
-  switch (event.message.command) { 
+  switch (event.message.command) {
   case cmFindWindow:
-    if (event.message.infoInt == cmViewStack) {
+    if (event.message.infoInt == cmViewSource) {
       clearEvent(event);
       return;
     }
@@ -83,6 +108,6 @@ void TStackWindow::handleEvent(TEvent& event) {
   TWindow::handleEvent(event);
 }
 
-TStackWindow::~TStackWindow() {
-
+void TSourceWindow::set_text(const std::vector<std::string>& text) {
+  fp->set_text(text);
 }

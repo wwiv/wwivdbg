@@ -19,6 +19,7 @@ add_executable(wwivdbg
   "src/protocol.cpp" 
   "src/utils.cpp"
   "src/menu.cpp"
+  "src/source.cpp"
   "src/editor.cpp")
 target_compile_features(wwivdbg PRIVATE cxx_std_17)
 

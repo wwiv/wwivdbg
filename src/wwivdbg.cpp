@@ -46,6 +46,7 @@
 #include "editor.h"
 #include "menu.h"
 #include "protocol.h"
+#include "source.h"
 #include "stack.h"
 #include "utils.h"
 #include "wwivdbg.h"
@@ -111,14 +112,45 @@ TEditWindow *TDebuggerApp::openEditor(const std::string& fileName, Boolean visib
   return nullptr;
 }
 
-int TDebuggerApp::openStackWindow() { 
-  TRect r = deskTop->getExtent(); 
+TStackWindow *TDebuggerApp::findStackWindow() {
+  ptrdiff_t cmd = cmViewStack;
+  if (auto *o = message(deskTop, evBroadcast, cmFindWindow,
+                        reinterpret_cast<void *>(cmd))) {
+    auto *window = reinterpret_cast<TStackWindow *>(o);
+    window->select();
+    return window;
+  } 
+  return openStackWindow();
+}
+
+TStackWindow *TDebuggerApp::openStackWindow() {
+  TRect r = deskTop->getExtent();
   // Move down 70%
   r.a.y = (r.b.y * .7);
   auto wn = ++windowNumber_;
-  auto*window = new TStackWindow(r, "Call Stack", wn);
+  auto *window = new TStackWindow(r, "Call Stack", wn);
   deskTop->insert(window);
-  return wn;
+  return window;
+}
+
+TSourceWindow* TDebuggerApp::findSourceWindow() {
+  ptrdiff_t cmd = cmViewSource;
+  if (auto *o = message(deskTop, evBroadcast, cmFindWindow,
+                        reinterpret_cast<void *>(cmd))) {
+    TSourceWindow *window = reinterpret_cast<TSourceWindow *>(o);
+    window->select();
+    return window;
+  }
+  return openSourceWindow();
+}
+
+TSourceWindow *TDebuggerApp::openSourceWindow() {
+  TRect r = deskTop->getExtent();
+  // Move down 70%
+  r.b.y = r.b.y * .7;
+  auto *window = new TSourceWindow(r);
+  deskTop->insert(window);
+  return window;
 }
 
 TDebuggerApp::TDebuggerApp(int argc, char **argv)
@@ -170,12 +202,23 @@ void TDebuggerApp::handleEvent(TEvent &event) {
     changeDir();
     break;
   case cmViewStack: {
-    if (auto *o = message(deskTop, evBroadcast, cmFindWindow, nullptr)) {
-      TWindow *window = reinterpret_cast<TWindow *>(o);
-      window->select();
-    } else {
-      openStackWindow();
-    }
+    findStackWindow();
+  } break;
+  case cmViewSource: {
+    auto* s = findSourceWindow();
+    s->set_text({
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",  "10",
+        "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
+        "21", "22", "23", "24", "25", "26", "27", "28", "29", "30"
+    });
   } break;
   case cmHelpAbout:
     ShowAboutBox();

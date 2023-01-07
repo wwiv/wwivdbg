@@ -42,7 +42,10 @@ public:
 
 private:
   TEditWindow *openEditor(const std::string& fileName, Boolean visible);
-  int openStackWindow();
+  TStackWindow* findStackWindow();
+  TStackWindow *openStackWindow();
+  TSourceWindow* findSourceWindow();
+  TSourceWindow *openSourceWindow();
   void fileOpen();
   void fileNew();
   void changeDir();
