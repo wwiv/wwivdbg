@@ -41,8 +41,17 @@ public:
   void SetText(const std::string &text);
   void SetText(const std::vector<std::string> &text);
 
+  void UpdateLocation(int pos, int line, int col) {
+    current_pos_ = pos;
+    current_line_ = line;
+    current_col_ = col;
+  }
+
 private:
   std::vector<std::string> lines;
+  int current_pos_{0};
+  int current_line_{0};
+  int current_col_{0};
 };
 
 class TSourceWindow : public TWindow {

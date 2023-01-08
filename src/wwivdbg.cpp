@@ -202,9 +202,9 @@ void TDebuggerApp::handleEvent(TEvent &event) {
 void TDebuggerApp::handleBroadcast(TEvent &event) {
   switch (event.message.command) { 
   case cmDebugAttached: {
-    debug_->UpdateState();
     debug_->UpdateSource();
     debug_->UpdateCallStack();
+    debug_->UpdateState();
 
     enableCommands(attached_cmds_);
     disableCommands(detached_cmds_);

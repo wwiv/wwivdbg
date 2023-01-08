@@ -17,7 +17,7 @@
 
 #include "protocol.h"
 #include "httplib.h"
-
+#include "strings.h"
 #include "commands.h"
 #include "fmt/format.h"
 #include <string>
@@ -102,11 +102,13 @@ bool DebugProtocol::UpdateCallStack() {
 
 bool DebugProtocol::UpdateState() { 
   if (auto state = Get("state")) {
-    state_ = state.value();
-    // Source does not go into the queue
-    ptrdiff_t t = static_cast<int>(DebugMessage::Type::STATE);
-    message(app_, evBroadcast, cmDebugStateChanged,
-            reinterpret_cast<void *>(t));
+    const auto parts = wwiv::strings::SplitString(state.value(), " ");
+    state_.pos = wwiv::strings::to_number<int>(parts[0]);
+    state_.line = wwiv::strings::to_number<int>(parts[1]);
+    state_.col = wwiv::strings::to_number<int>(parts[2]);
+
+    // State does not go into the queue
+    message(app_, evBroadcast, cmDebugStateChanged, 0);
     return true;
   }
   return false;
@@ -129,10 +131,6 @@ bool DebugProtocol::Attach() {
       std::lock_guard<std::mutex> lock(mu_);
       attached_ = true;
     }
-    //TEvent event{};
-    //event.what = evBroadcast;
-    //event.message.command = cmDebugAttached;
-    //desktop_->handleEvent(event);
     auto handler = message(app_, evBroadcast, cmDebugAttached, 0);
     return true;
   }
@@ -180,4 +178,8 @@ std::optional<std::string> DebugProtocol::Post(const std::string &part) {
     return res->body;
   }
   return std::nullopt;
+}
+
+std::string DebugState::to_string() { 
+  return fmt::format("State: pos:{} line:{} col:{}", pos, line, col);
 }

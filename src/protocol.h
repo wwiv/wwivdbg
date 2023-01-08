@@ -36,6 +36,15 @@ public:
   std::string message;
 };
 
+class DebugState {
+public:
+  int pos{0};
+  int line{0};
+  int col{0};
+
+  std::string to_string();
+};
+
 class TApplication;
 class TView;
 
@@ -67,7 +76,7 @@ public:
   bool UpdateSource();
   // Latest updated source
   std::string source() { return source_;  }
-  std::string state() { return state_;  }
+  DebugState state() { return state_; }
   bool UpdateCallStack();
   bool UpdateState();
   bool Attach();
@@ -90,7 +99,7 @@ private:
   bool attached_{false};
 
   std::string source_;
-  std::string state_;
+  DebugState state_;
 };
 
 

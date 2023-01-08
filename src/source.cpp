@@ -157,7 +157,9 @@ void TSourceWindow::handleEvent(TEvent &event) {
     clearEvent(event);
     return;
   case cmDebugStateChanged: {
-    messageBox(debug_->state(), mfInformation | mfOKButton);
+    messageBox(debug_->state().to_string(), mfInformation | mfOKButton);
+    const auto &s = debug_->state();
+    fp->UpdateLocation(s.pos, s.line, s.col);
   } break;
   }
   TWindow::handleEvent(event);

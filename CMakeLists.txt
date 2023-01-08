@@ -16,6 +16,7 @@ find_package(nlohmann_json CONFIG REQUIRED)
 add_executable(wwivdbg 
   "src/wwivdbg.cpp" 
   "src/breakpoints.cpp" 
+  "src/strings.cpp" 
   "src/stack.cpp" 
   "src/protocol.cpp" 
   "src/utils.cpp"
