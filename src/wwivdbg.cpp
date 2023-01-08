@@ -239,6 +239,7 @@ void TDebuggerApp::handleCommand(TEvent &event) {
   } break;
   case cmViewSource: {
     auto* s = findSourceWindow();
+    s->SetText("this\nis\na\ntest\n\nHello\nWorld\n\n");
   } break;
   case cmDebugRun:
     messageBox("Implement Run", mfOKButton | mfError);

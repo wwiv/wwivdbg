@@ -103,9 +103,10 @@ bool DebugProtocol::UpdateCallStack() {
 bool DebugProtocol::UpdateState() { 
   if (auto state = Get("state")) {
     const auto parts = wwiv::strings::SplitString(state.value(), " ");
-    state_.pos = wwiv::strings::to_number<int>(parts[0]);
-    state_.line = wwiv::strings::to_number<int>(parts[1]);
-    state_.col = wwiv::strings::to_number<int>(parts[2]);
+    state_.module = wwiv::strings::to_number<int>(parts[0]);
+    state_.pos = wwiv::strings::to_number<int>(parts[1]);
+    state_.line = wwiv::strings::to_number<int>(parts[2]);
+    state_.col = wwiv::strings::to_number<int>(parts[3]);
 
     // State does not go into the queue
     message(app_, evBroadcast, cmDebugStateChanged, 0);

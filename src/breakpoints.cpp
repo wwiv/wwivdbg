@@ -41,6 +41,7 @@
 #define Uses_TSubMenu
 
 #include "tvision/tv.h"
+#include "fmt/format.h"
 #include "commands.h"
 #include "breakpoints.h"
 #include "utils.h"
@@ -67,22 +68,22 @@ void TBreakpointsPane::SetText(const std::vector<std::string> &text) {
 }
 
 void TBreakpointsPane::draw() { 
-  auto color = getColor(0x0301); 
- for (int i = 0; i < size.y; i++) {
+  if (int j = delta.y; j < lines.size()) {
+    auto c = ((j+1 % 6) << 8) | 0x01;
+    auto color = getColor(c);
     TDrawBuffer b;
     b.moveChar(0, ' ', color, size.x);
-
-    if (int j = i + delta.y; j < lines.size()) {
-      // make sure we have this line.
-      auto l = lines.at(j);
-      if (delta.x >= std::ssize(l)) {
-        l.clear();
-      } else {
-        l = l.substr(delta.x);
-      }
-      b.moveStr(0, l, color);
+    // make sure we have this line.
+    //auto l = lines.at(j);
+    auto l = fmt::format("This is line #", j);
+    if (delta.x >= std::ssize(l)) {
+      l.clear();
+    } else {
+      l = l.substr(delta.x);
     }
-    writeLine(0, i, size.x, 1, b);
+    l = fmt::format("This is line #", j);
+    b.moveStr(0, l, color);
+    writeLine(0, j - delta.y, size.x, 1, b);
   }
 }
 

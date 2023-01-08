@@ -38,6 +38,7 @@ public:
 
 class DebugState {
 public:
+  std::string module;
   int pos{0};
   int line{0};
   int col{0};

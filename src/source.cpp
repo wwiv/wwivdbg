@@ -107,8 +107,13 @@ static std::string replace_tabs(const std::string &l) {
 }
 
 void TSourcePane::draw() { 
-  auto color = getColor(0x0301); 
- for (int i = 0; i < size.y; i++) {
+  auto palette = getPalette();
+  auto normal_color = getColor(0x0301);
+  auto selected_color = getColor(0x201);
+  for (int i = delta.y; i < size.y; i++) {
+    const auto c = (i == current_line_) ? 2 : 1;
+    auto color = getColor(c);
+    //auto color = c == 1 ? 0x0F : 0x3F;
     TDrawBuffer b;
     b.moveChar(0, ' ', color, size.x);
 
@@ -121,6 +126,7 @@ void TSourcePane::draw() {
         l = l.substr(delta.x);
       }
       l = replace_tabs(l);
+
       b.moveStr(0, l, color);
     }
     writeLine(0, i, size.x, 1, b);
@@ -166,5 +172,9 @@ void TSourceWindow::handleEvent(TEvent &event) {
 }
 
 void TSourceWindow::SetText(const std::vector<std::string> &text) {
+  fp->SetText(text);
+}
+
+void TSourceWindow::SetText(const std::string &text) {
   fp->SetText(text);
 }

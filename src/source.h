@@ -67,6 +67,7 @@ public:
   virtual void handleEvent(TEvent &event) override;
 
   void SetText(const std::vector<std::string> &text);
+  void SetText(const std::string &text);
 };
 
 
