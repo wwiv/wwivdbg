@@ -32,9 +32,15 @@ constexpr int cmDebugRun = 110;
 constexpr int cmDebugTraceIn = 111;
 constexpr int cmDebugStepOver = 112;
 constexpr int cmDebugAttach = 113;
+constexpr int cmDebugDetach = 114;
 
 
 // Other commands
 constexpr int cmFindWindow = 1000;
+
+// Debug information is available
+constexpr int cmDebugAvail = 2000;
+constexpr int cmDebugAttached = 2001;
+constexpr int cmDebugDetached = 2002;
 
 #endif 

@@ -88,7 +88,9 @@ TMenuBar *CreateMenuBar(TRect &r) {
       *new TMenuItem("~R~un", cmDebugRun, kbF9, hcNoContext, "F9") +
       *new TMenuItem("~T~race Into", cmDebugTraceIn, kbF7, hcNoContext, "F7") +
       *new TMenuItem("~S~tep Over", cmDebugStepOver, kbF8, hcNoContext, "F8") +
-      newLine() + *new TMenuItem("~A~ttach to BBS...", cmDebugAttach, kbNoKey);
+      newLine() + 
+      *new TMenuItem("~A~ttach to BBS", cmDebugAttach, kbNoKey) +
+      *new TMenuItem("D~e~tach from BBS", cmDebugDetach, kbNoKey);
 
 
   TSubMenu &menuWindows =

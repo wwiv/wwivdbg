@@ -18,20 +18,25 @@
 #define INCLUDED_WWIVDBG_PROTOCOL_H
 
 #include <deque>
+#include <map>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <thread>
 
+
 class DebugMessage {
 public:
-  enum class Type { STOPPED, RUNNING, SOURCE, STACK, BREAKPOINTS };
+  enum class Type { STOPPED, RUNNING, SOURCE, STACK, STATE, BREAKPOINTS };
   DebugMessage(Type t, std::string m)
       : msgType(t), message(m) {}
 
   Type msgType;
   std::string message;
 };
+
+class TView;
 
 namespace httplib {
 class Client;
@@ -49,26 +54,34 @@ class Server;
  */
 class DebugProtocol {
 public:
-  DebugProtocol();
+  DebugProtocol(TView *desktop, const std::string &host, int port);
   ~DebugProtocol();
 
-  bool has_message() const;
-  DebugMessage next();
+  bool has_message(DebugMessage::Type t) const;
+  DebugMessage next(DebugMessage::Type t);
+  DebugMessage peek(DebugMessage::Type t);
+
   void add(DebugMessage&& msg);
+
+  bool UpdateSource();
+  bool UpdateCallStack();
+  bool UpdateState();
+  bool Attach();
+  bool Detach();
 
 
 private:
+  std::optional<std::string> Get(const std::string &part);
+  std::optional<std::string> Post(const std::string &part);
 
-  bool
-  Receive(const httplib::Request &req, httplib::Response &res,
-          const httplib::ContentReader &content_reader, DebugMessage::Type t);
-
-  std::thread srv_thread_;
-  std::unique_ptr<httplib::Server> svr_;
-  std::thread cli_thread_;
   std::unique_ptr<httplib::Client> cli_;
-  std::deque<DebugMessage> queue_;
+  //std::deque<DebugMessage> queue_;
+  std::map<DebugMessage::Type, std::deque<DebugMessage>> queue_;
   mutable std::mutex mu_;
+  TView *desktop_;
+  const std::string host_;
+  const int port_;
+  bool attached_{false};
 };
 
 

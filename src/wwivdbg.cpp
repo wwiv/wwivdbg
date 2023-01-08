@@ -78,25 +78,25 @@ void TDebuggerApp::idle() {
   // TODO(rushfan): Look for debug messages then broadcast to right places.
   TApplication::idle(); 
 
-  if (!debug_->has_message()) {
-    std::this_thread::yield();
-    return;
-  }
+  //if (!debug_->has_message()) {
+  //  std::this_thread::yield();
+  //  return;
+  //}
 
-  while (debug_->has_message()) {
-    auto m = debug_->next();
-    switch (m.msgType) {
-    case DebugMessage::Type::BREAKPOINTS:
-      messageBox("Received breakpoints!", mfOKButton);
-      return;
-    case DebugMessage::Type::STACK:
-      messageBox("Received Call Stack!", mfOKButton);
-      return;
-    case DebugMessage::Type::SOURCE:
-      messageBox("Received Source!", mfOKButton);
-      return;
-    }
-  }
+  //while (debug_->has_message()) {
+  //  auto m = debug_->next();
+  //  switch (m.msgType) {
+  //  case DebugMessage::Type::BREAKPOINTS:
+  //    messageBox("Received breakpoints!", mfOKButton);
+  //    return;
+  //  case DebugMessage::Type::STACK:
+  //    messageBox("Received Call Stack!", mfOKButton);
+  //    return;
+  //  case DebugMessage::Type::SOURCE:
+  //    messageBox("Received Source!", mfOKButton);
+  //    return;
+  //  }
+  //}
 }
 
 
@@ -174,7 +174,16 @@ TDebuggerApp::TDebuggerApp(int argc, char **argv)
   UpdateInitialEditorCommandState(this);
   cascade();
 
-  debug_ = std::make_unique<DebugProtocol>();
+  debug_ = std::make_unique<DebugProtocol>(deskTop, "localhost", 9948);
+  disableCommand(cmDebugDetach);
+  attached_cmds_ += cmDebugDetach;
+  attached_cmds_ += cmDebugRun;
+  attached_cmds_ += cmDebugStepOver;
+  attached_cmds_ += cmDebugTraceIn;
+  disableCommands(attached_cmds_);
+
+  detached_cmds_ += cmDebugAttach;
+  enableCommands(detached_cmds_);
 }
 
 TDebuggerApp::~TDebuggerApp() { debug_.reset(nullptr); }
@@ -196,9 +205,38 @@ void TDebuggerApp::changeDir() { execDialog(new TChDirDialog(cdNormal, 0), 0); }
 
 void TDebuggerApp::handleEvent(TEvent &event) {
   TApplication::handleEvent(event);
-  if (event.what != evCommand) {
+  switch (event.what) { 
+  case evCommand:
+    handleCommand(event);
+    break;
+  case evBroadcast:
+    handleBroadcast(event);
+    break;
+  }
+}
+
+void TDebuggerApp::handleBroadcast(TEvent &event) {
+  switch (event.message.command) { 
+  case cmDebugAttached: {
+    debug_->UpdateState();
+    debug_->UpdateSource();
+    debug_->UpdateCallStack();
+
+    enableCommands(attached_cmds_);
+    disableCommands(detached_cmds_);
+  } break;
+  case cmDebugDetached: {
+    enableCommands(detached_cmds_);
+    disableCommands(attached_cmds_);
+  }
+  break;
+  default:
     return;
   }
+  clearEvent(event);
+}
+
+void TDebuggerApp::handleCommand(TEvent &event) {
   switch (event.message.command) {
   case cmOpen:
     fileOpen();
@@ -240,6 +278,11 @@ void TDebuggerApp::handleEvent(TEvent &event) {
   case cmDebugStepOver:
     messageBox("Implement RunStepOver", mfOKButton | mfError);
     break;
+  case cmDebugAttach: {
+    if (!debug_->Attach()) {
+      messageBox("Error attaching to BBS.", mfOKButton | mfError);
+    }
+  } break;
   case cmHelpAbout:
     ShowAboutBox();
     break;

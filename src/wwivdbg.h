@@ -17,6 +17,7 @@
 #ifndef INCLUDED_WWIVDBG_WWIVDBG_H
 #define INCLUDED_WWIVDBG_WWIVDBG_H
 
+#include "tvision/tv.h"
 #include <memory>
 #include <string>
 
@@ -38,6 +39,8 @@ public:
   ~TDebuggerApp();
 
   virtual void handleEvent(TEvent &event) override;
+  void handleCommand(TEvent &event);
+  void handleBroadcast(TEvent &event);
   static TMenuBar *initMenuBar(TRect);
   static TStatusLine *initStatusLine(TRect);
   virtual void outOfMemory() override;
@@ -57,6 +60,8 @@ private:
 
   int windowNumber_{0};
   std::unique_ptr<DebugProtocol> debug_;
+  TCommandSet attached_cmds_;
+  TCommandSet detached_cmds_;
 };
 
 TDialog *createFindDialog();
