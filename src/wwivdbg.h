@@ -41,6 +41,9 @@ public:
   virtual void handleEvent(TEvent &event) override;
   void handleCommand(TEvent &event);
   void handleBroadcast(TEvent &event);
+  virtual void eventError(TEvent &event) override;
+  virtual bool valid(ushort cmd) override;
+
   static TMenuBar *initMenuBar(TRect);
   static TStatusLine *initStatusLine(TRect);
   virtual void outOfMemory() override;
@@ -59,7 +62,7 @@ private:
   void ShowAboutBox();
 
   int windowNumber_{0};
-  std::unique_ptr<DebugProtocol> debug_;
+  std::shared_ptr<DebugProtocol> debug_;
   TCommandSet attached_cmds_;
   TCommandSet detached_cmds_;
 };

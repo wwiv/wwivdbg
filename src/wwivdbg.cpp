@@ -42,6 +42,7 @@
 #define Uses_TSubMenu
 
 #include "tvision/tv.h"
+#include "fmt/format.h"
 #include "breakpoints.h"
 #include "commands.h"
 #include "editor.h"
@@ -72,31 +73,15 @@ void TDebuggerApp::outOfMemory() {
 void TDebuggerApp::getEvent(TEvent& event) {
 
   TApplication::getEvent(event);
+  if (event.what == evBroadcast && event.message.command == cmDebugAttached) {
+    //OOOO
+    OutputDebugString("cmDebugAttached");
+  }
 }
 
 void TDebuggerApp::idle() { 
   // TODO(rushfan): Look for debug messages then broadcast to right places.
   TApplication::idle(); 
-
-  //if (!debug_->has_message()) {
-  //  std::this_thread::yield();
-  //  return;
-  //}
-
-  //while (debug_->has_message()) {
-  //  auto m = debug_->next();
-  //  switch (m.msgType) {
-  //  case DebugMessage::Type::BREAKPOINTS:
-  //    messageBox("Received breakpoints!", mfOKButton);
-  //    return;
-  //  case DebugMessage::Type::STACK:
-  //    messageBox("Received Call Stack!", mfOKButton);
-  //    return;
-  //  case DebugMessage::Type::SOURCE:
-  //    messageBox("Received Source!", mfOKButton);
-  //    return;
-  //  }
-  //}
 }
 
 
@@ -144,7 +129,7 @@ TSourceWindow* TDebuggerApp::findSourceWindow() {
   TRect r = deskTop->getExtent();
   // cap botton at 70%
   r.b.y = r.b.y * .7;
-  auto *window = new TSourceWindow(r);
+  auto *window = new TSourceWindow(r, debug_);
   deskTop->insert(window);
   return window;
 }
@@ -174,7 +159,7 @@ TDebuggerApp::TDebuggerApp(int argc, char **argv)
   UpdateInitialEditorCommandState(this);
   cascade();
 
-  debug_ = std::make_unique<DebugProtocol>(deskTop, "localhost", 9948);
+  debug_ = std::make_shared<DebugProtocol>(this, deskTop, "localhost", 9948);
   disableCommand(cmDebugDetach);
   attached_cmds_ += cmDebugDetach;
   attached_cmds_ += cmDebugRun;
@@ -186,7 +171,7 @@ TDebuggerApp::TDebuggerApp(int argc, char **argv)
   enableCommands(detached_cmds_);
 }
 
-TDebuggerApp::~TDebuggerApp() { debug_.reset(nullptr); }
+TDebuggerApp::~TDebuggerApp() { debug_.reset(); }
 
 void TDebuggerApp::fileOpen() {
   char fileName[MAXPATH];
@@ -214,7 +199,6 @@ void TDebuggerApp::handleEvent(TEvent &event) {
     break;
   }
 }
-
 void TDebuggerApp::handleBroadcast(TEvent &event) {
   switch (event.message.command) { 
   case cmDebugAttached: {
@@ -255,19 +239,6 @@ void TDebuggerApp::handleCommand(TEvent &event) {
   } break;
   case cmViewSource: {
     auto* s = findSourceWindow();
-    s->SetText({
-        "1ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZXXXXXXXXXXXXXXXXXXXXXXXXXXXXYYYYYYYYYYYYYYYYYYYYYYYYYYYY",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7",
-        "8",
-        "9",  "10",
-        "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
-        "21", "22", "23", "24", "25", "26", "27", "28", "29", "30"
-    });
   } break;
   case cmDebugRun:
     messageBox("Implement Run", mfOKButton | mfError);
@@ -283,6 +254,11 @@ void TDebuggerApp::handleCommand(TEvent &event) {
       messageBox("Error attaching to BBS.", mfOKButton | mfError);
     }
   } break;
+  case cmDebugDetach: {
+    if (!debug_->Detach()) {
+      messageBox("Error detaching to BBS.", mfOKButton | mfError);
+    }
+  } break;
   case cmHelpAbout:
     ShowAboutBox();
     break;
@@ -291,6 +267,25 @@ void TDebuggerApp::handleCommand(TEvent &event) {
   }
   clearEvent(event);
 }
+
+void TDebuggerApp::eventError(TEvent &event) {
+  if (event.what == evBroadcast && event.message.command >= 100) {
+    auto text = fmt::format("Event Error: cmd:{} data:{}\n",
+                            event.message.command, event.message.infoLong);
+#ifdef _WIN32
+    OutputDebugString(text.c_str());
+#endif
+  }
+}
+
+bool TDebuggerApp::valid(ushort cmd) { 
+  if (cmd == cmQuit && debug_->attached()) {
+    debug_->Detach();
+  }
+  return TApplication::valid(cmd); 
+}
+
+
 
 void TDebuggerApp::ShowAboutBox() {
   TDialog *aboutBox = new TDialog(TRect(0, 0, 59, 11), "About");

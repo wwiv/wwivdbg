@@ -22,11 +22,15 @@
 #include "fmt/format.h"
 #include <string>
 #include <optional>
+
+#define Uses_TApplication
+
 #include "tvision/tv.h"
 
 
-DebugProtocol::DebugProtocol(TView *desktop, const std::string &host, int port)
-    : desktop_(desktop), host_(host), port_(port) {
+DebugProtocol::DebugProtocol(TApplication *app, TView *desktop,
+                             const std::string &host, int port)
+    : app_(app), desktop_(desktop), host_(host), port_(port) {
   cli_ = std::make_unique<httplib::Client>(host, port);
 }
 
@@ -55,7 +59,9 @@ DebugMessage DebugProtocol::next(DebugMessage::Type t) {
 DebugMessage DebugProtocol::peek(DebugMessage::Type t) {
   std::lock_guard<std::mutex> lock(mu_);
   if (auto it = queue_.find(t); it != queue_.end()) {
-    return it->second.front();
+    if (!it->second.empty()) {
+      return it->second.front();
+    }
   }
   return DebugMessage(DebugMessage::Type::STOPPED, "");
 }
@@ -64,20 +70,23 @@ void DebugProtocol::add(DebugMessage&& msg) {
   bool added{false};
   {
     std::lock_guard<std::mutex> lock(mu_);
-    if (auto it = queue_.find(msg.msgType); it != queue_.end()) {
-      it->second.push_back(msg);
-      added = true;
-    }
+    // create or replace
+    queue_[msg.msgType].push_back(msg);
+    added = true;
   }
   if (added) {
     ptrdiff_t t = static_cast<int>(msg.msgType);
-    message(desktop_, evBroadcast, cmDebugAvail, reinterpret_cast<void *>(t));
+    message(app_, evBroadcast, cmDebugAvail, reinterpret_cast<void *>(t));
   }
 }
 
 bool DebugProtocol::UpdateSource() {
   if (auto source = Get("source")) {
-    add({DebugMessage::Type::SOURCE, source.value()});
+    source_ = source.value();
+    // Source does not go into the queue
+    ptrdiff_t t = static_cast<int>(DebugMessage::Type::SOURCE);
+    message(app_, evBroadcast, cmDebugSourceChanged,
+            reinterpret_cast<void *>(t));
     return true;
   }
   return false;
@@ -92,11 +101,20 @@ bool DebugProtocol::UpdateCallStack() {
 }
 
 bool DebugProtocol::UpdateState() { 
-  if (auto source = Get("state")) {
-    add({DebugMessage::Type::STATE, source.value()});
+  if (auto state = Get("state")) {
+    state_ = state.value();
+    // Source does not go into the queue
+    ptrdiff_t t = static_cast<int>(DebugMessage::Type::STATE);
+    message(app_, evBroadcast, cmDebugStateChanged,
+            reinterpret_cast<void *>(t));
     return true;
   }
   return false;
+}
+
+bool DebugProtocol::attached() const {
+  std::lock_guard<std::mutex> lock(mu_);
+  return attached_;
 }
 
 bool DebugProtocol::Attach() {
@@ -111,7 +129,11 @@ bool DebugProtocol::Attach() {
       std::lock_guard<std::mutex> lock(mu_);
       attached_ = true;
     }
-    message(desktop_, evBroadcast, cmDebugAttached, 0);
+    //TEvent event{};
+    //event.what = evBroadcast;
+    //event.message.command = cmDebugAttached;
+    //desktop_->handleEvent(event);
+    auto handler = message(app_, evBroadcast, cmDebugAttached, 0);
     return true;
   }
   return false;
@@ -150,7 +172,7 @@ std::optional<std::string> DebugProtocol::Get(const std::string& part) {
 
 std::optional<std::string> DebugProtocol::Post(const std::string &part) {
   const auto uri = fmt::format("/debug/v1/{}", part);
-  if (auto res = cli_->Post(uri)) {
+  if (auto res = cli_->Post(uri, "wwivdbg v0", "text/plain")) {
     if (res->status != 200) {
       // TODO(rushfan): Log error.
       return std::nullopt;

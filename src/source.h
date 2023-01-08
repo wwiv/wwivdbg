@@ -24,8 +24,11 @@
 
 #include "tvision/tv.h"
 
+#include <memory>
 #include <string>
 #include <vector>
+
+class DebugProtocol;
 
 class TSourcePane : public TScroller {
 
@@ -33,6 +36,9 @@ public:
   TSourcePane(const TRect &bounds, TScrollBar *hsb, TScrollBar *vsb);
   ~TSourcePane() = default;
   virtual void draw();
+
+  // Sets the text buffer either as lines or text.
+  void SetText(const std::string &text);
   void SetText(const std::vector<std::string> &text);
 
 private:
@@ -40,11 +46,13 @@ private:
 };
 
 class TSourceWindow : public TWindow {
+private:
   TSourcePane *fp;
   TScrollBar *hsb, *vsb;
+  std::shared_ptr<DebugProtocol> debug_;
 
 public:
-  TSourceWindow(TRect r);
+  TSourceWindow(TRect r, const std::shared_ptr<DebugProtocol>& debug);
   ~TSourceWindow();
 
   virtual void handleEvent(TEvent &event) override;

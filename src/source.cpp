@@ -42,6 +42,7 @@
 
 #include "tvision/tv.h"
 #include "commands.h"
+#include "protocol.h"
 #include "source.h"
 #include "utils.h"
 #include <sstream>
@@ -54,6 +55,22 @@ TSourcePane::TSourcePane(const TRect &bounds, TScrollBar *hsb, TScrollBar *vsb)
   growMode = gfGrowHiY | gfGrowHiX | gfFixed;
 }
 
+// Split a string into lines
+static std::vector<std::string> split_string_by_newline(const std::string &str) {
+  auto result = std::vector<std::string>{};
+  auto ss = std::stringstream{str};
+
+  for (std::string line; std::getline(ss, line, '\n');)
+    result.push_back(line);
+
+  return result;
+}
+
+void TSourcePane::SetText(const std::string &text) {
+  const auto lines = split_string_by_newline(text);
+  SetText(lines);
+}
+
 void TSourcePane::SetText(const std::vector<std::string> &text) {
   lines = text;
   auto max_line_len = 0;
@@ -64,6 +81,29 @@ void TSourcePane::SetText(const std::vector<std::string> &text) {
   }
   setLimit(max_line_len, lines.size());
   draw();
+}
+
+// hacky way to fix up tabs and stuff since it renders as 'o'
+static std::string replace_tabs(const std::string &l) { 
+  std::string out;
+  out.reserve(l.size() + 20);
+  for (const auto c : l) {
+    if (c < 0) {
+      // high ascii?
+    } else if (c < 32) {
+      switch (c) {
+      case '\t': {
+        while ((out.size() % 8) != 0) {
+          out.push_back(' ');
+        }
+      } break;
+      }
+      // control chars?
+    } else {
+      out.push_back(c);
+    }
+  }
+  return out;
 }
 
 void TSourcePane::draw() { 
@@ -80,35 +120,45 @@ void TSourcePane::draw() {
       } else {
         l = l.substr(delta.x);
       }
+      l = replace_tabs(l);
       b.moveStr(0, l, color);
     }
     writeLine(0, i, size.x, 1, b);
   }
 }
 
-TSourceWindow::TSourceWindow(TRect r)
+TSourceWindow::TSourceWindow(TRect r, const std::shared_ptr<DebugProtocol>& debug)
     : TWindowInit(TWindow::initFrame),
-      TWindow(r, "Source", 0) {
+      TWindow(r, "Source", 0), debug_(debug) {
 
   hsb = standardScrollBar(sbHorizontal | sbHandleKeyboard);
   vsb = standardScrollBar(sbVertical | sbHandleKeyboard);
   insert(fp = new TSourcePane(getClipRect().grow(-1, -1), hsb, vsb));
+  fp->SetText(debug->source());
 }
 
 TSourceWindow ::~TSourceWindow() = default;
 
+// Only handle broadcast events in here for now.
 void TSourceWindow::handleEvent(TEvent &event) {
-  // Only handle broadcast events in here for now.
   if (event.what != evBroadcast) {
     TWindow::handleEvent(event);
     return;
   }
   switch (event.message.command) {
-  case cmFindWindow:
+  case cmFindWindow: {
     if (event.message.infoInt == cmViewSource) {
       clearEvent(event);
       return;
     }
+  } break;
+  case cmDebugSourceChanged:
+    fp->SetText(debug_->source());
+    clearEvent(event);
+    return;
+  case cmDebugStateChanged: {
+    messageBox(debug_->state(), mfInformation | mfOKButton);
+  } break;
   }
   TWindow::handleEvent(event);
 }

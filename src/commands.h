@@ -43,4 +43,9 @@ constexpr int cmDebugAvail = 2000;
 constexpr int cmDebugAttached = 2001;
 constexpr int cmDebugDetached = 2002;
 
+constexpr int cmDebugSourceChanged = 2003;
+constexpr int cmDebugStackChanged = 2004;
+constexpr int cmDebugBreakpointsChanged = 2005;
+constexpr int cmDebugStateChanged = 2006;
+
 #endif 

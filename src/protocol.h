@@ -36,6 +36,7 @@ public:
   std::string message;
 };
 
+class TApplication;
 class TView;
 
 namespace httplib {
@@ -54,7 +55,7 @@ class Server;
  */
 class DebugProtocol {
 public:
-  DebugProtocol(TView *desktop, const std::string &host, int port);
+  DebugProtocol(TApplication* app, TView *desktop, const std::string &host, int port);
   ~DebugProtocol();
 
   bool has_message(DebugMessage::Type t) const;
@@ -64,10 +65,14 @@ public:
   void add(DebugMessage&& msg);
 
   bool UpdateSource();
+  // Latest updated source
+  std::string source() { return source_;  }
+  std::string state() { return state_;  }
   bool UpdateCallStack();
   bool UpdateState();
   bool Attach();
   bool Detach();
+  bool attached() const;
 
 
 private:
@@ -78,10 +83,14 @@ private:
   //std::deque<DebugMessage> queue_;
   std::map<DebugMessage::Type, std::deque<DebugMessage>> queue_;
   mutable std::mutex mu_;
+  TApplication *app_; 
   TView *desktop_;
   const std::string host_;
   const int port_;
   bool attached_{false};
+
+  std::string source_;
+  std::string state_;
 };
 
 
