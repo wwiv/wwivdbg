@@ -49,8 +49,9 @@
 #include <string>
 
 
-TSourcePane::TSourcePane(const TRect &bounds, TScrollBar *hsb, TScrollBar *vsb)
-    : TScroller(bounds, hsb, vsb) {
+TSourcePane::TSourcePane(const TRect &bounds, TScrollBar *hsb, TScrollBar *vsb,
+                         DebugProtocol* debug)
+    : TScroller(bounds, hsb, vsb), debug_(debug) {
   options |= ofFramed;
   growMode = gfGrowHiY | gfGrowHiX | gfFixed;
 }
@@ -107,26 +108,25 @@ static std::string replace_tabs(const std::string &l) {
 }
 
 void TSourcePane::draw() { 
-  auto palette = getPalette();
-  auto normal_color = getColor(0x0301);
-  auto selected_color = getColor(0x201);
-  for (int i = delta.y; i < size.y; i++) {
-    const auto c = (i == current_line_) ? 2 : 1;
+  //auto palette = getPalette();
+  const auto attached = debug_->attached();
+  const auto normal_color = getColor(0x0301);
+  const auto selected_color = getColor(0x201);
+  for (int i = 0; i < size.y; i++) {
+    int j = i + delta.y;
+    const auto c = (attached && j == current_line_) ? 2 : 1;
     auto color = getColor(c);
-    //auto color = c == 1 ? 0x0F : 0x3F;
     TDrawBuffer b;
     b.moveChar(0, ' ', color, size.x);
-
-    if (int j = i + delta.y; j < lines.size()) {
-      // make sure we have this line.
-      auto l = lines.at(j);
+    // make sure we have this line.
+    if (j < lines.size()) {
+      auto& l = lines.at(j);
       if (delta.x >= std::ssize(l)) {
         l.clear();
       } else {
         l = l.substr(delta.x);
       }
       l = replace_tabs(l);
-
       b.moveStr(0, l, color);
     }
     writeLine(0, i, size.x, 1, b);
@@ -139,7 +139,7 @@ TSourceWindow::TSourceWindow(TRect r, const std::shared_ptr<DebugProtocol>& debu
 
   hsb = standardScrollBar(sbHorizontal | sbHandleKeyboard);
   vsb = standardScrollBar(sbVertical | sbHandleKeyboard);
-  insert(fp = new TSourcePane(getClipRect().grow(-1, -1), hsb, vsb));
+  insert(fp = new TSourcePane(getClipRect().grow(-1, -1), hsb, vsb, debug.get()));
   fp->SetText(debug->source());
 }
 
@@ -163,9 +163,10 @@ void TSourceWindow::handleEvent(TEvent &event) {
     clearEvent(event);
     return;
   case cmDebugStateChanged: {
-    messageBox(debug_->state().to_string(), mfInformation | mfOKButton);
     const auto &s = debug_->state();
     fp->UpdateLocation(s.pos, s.line, s.col);
+    fp->draw();
+    clearEvent(event);
   } break;
   }
   TWindow::handleEvent(event);

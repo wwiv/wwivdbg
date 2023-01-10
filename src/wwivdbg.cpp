@@ -159,7 +159,7 @@ TDebuggerApp::TDebuggerApp(int argc, char **argv)
   UpdateInitialEditorCommandState(this);
   cascade();
 
-  debug_ = std::make_shared<DebugProtocol>(this, deskTop, "localhost", 9948);
+  debug_ = std::make_shared<DebugProtocol>(this, deskTop, "127.0.0.1", 9948);
   disableCommand(cmDebugDetach);
   attached_cmds_ += cmDebugDetach;
   attached_cmds_ += cmDebugRun;
@@ -212,6 +212,7 @@ void TDebuggerApp::handleBroadcast(TEvent &event) {
   case cmDebugDetached: {
     enableCommands(detached_cmds_);
     disableCommands(attached_cmds_);
+    messageBox("Debugger detached", mfInformation | mfOKButton);
   }
   break;
   default:
@@ -239,16 +240,20 @@ void TDebuggerApp::handleCommand(TEvent &event) {
   } break;
   case cmViewSource: {
     auto* s = findSourceWindow();
-    s->SetText("this\nis\na\ntest\n\nHello\nWorld\n\n");
+    //s->SetText("this\nis\na\ntest\n\nHello\nWorld\n\n");
   } break;
   case cmDebugRun:
     messageBox("Implement Run", mfOKButton | mfError);
     break;
   case cmDebugTraceIn:
-    messageBox("Implement RunTraceIn", mfOKButton | mfError);
+    if (!debug_->TraceIn()) {
+      messageBox("Implement RunTraceIn", mfOKButton | mfError);
+    }
     break;
   case cmDebugStepOver:
-    messageBox("Implement RunStepOver", mfOKButton | mfError);
+    if (!debug_->StepOver()) {
+      messageBox("Implement RunStepOver", mfOKButton | mfError);
+    }
     break;
   case cmDebugAttach: {
     if (!debug_->Attach()) {
@@ -263,6 +268,12 @@ void TDebuggerApp::handleCommand(TEvent &event) {
   case cmHelpAbout:
     ShowAboutBox();
     break;
+  case cmHelpFoo: {
+    auto *s = findSourceWindow();
+    s->SetText("this\nis\na\ntest\n\nHello\nWorld\nthis\nis\na\ntest\n\nHello\n"
+               "World\nthis\nis\na\ntest\n\nHello\nWorld\nthis\nis\na\ntest\n\n"
+               "Hello\nWorld\n\n");
+  } break;
   default:
     return;
   }

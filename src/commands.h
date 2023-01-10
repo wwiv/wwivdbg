@@ -26,6 +26,7 @@ constexpr int cmViewStack = 104;
 constexpr int cmViewSource = 105;
 // Help
 constexpr int cmHelpAbout = 130;
+constexpr int cmHelpFoo = 131;
 
 // View
 constexpr int cmDebugRun = 110;

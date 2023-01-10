@@ -105,6 +105,7 @@ TMenuBar *CreateMenuBar(TRect &r) {
       *new TMenuItem("~C~lose", cmClose, kbCtrlW, hcNoContext, "Ctrl+W");
 
   TSubMenu &menuHelp = *new TSubMenu("~H~elp", kbAltH) +
+                       *new TMenuItem("F~o~o...", cmHelpFoo, kbCtrlO, hcNoContext, "Ctrl-O") +
                        *new TMenuItem("~A~bout...", cmHelpAbout, kbNoKey);
 
   r.b.y = r.a.y + 1;

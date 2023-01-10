@@ -33,7 +33,8 @@ class DebugProtocol;
 class TSourcePane : public TScroller {
 
 public:
-  TSourcePane(const TRect &bounds, TScrollBar *hsb, TScrollBar *vsb);
+  TSourcePane(const TRect &bounds, TScrollBar *hsb, TScrollBar *vsb,
+              DebugProtocol* debug);
   ~TSourcePane() = default;
   virtual void draw();
 
@@ -45,6 +46,7 @@ public:
     current_pos_ = pos;
     current_line_ = line;
     current_col_ = col;
+    scrollTo(current_col_, current_line_);
   }
 
 private:
@@ -52,6 +54,7 @@ private:
   int current_pos_{0};
   int current_line_{0};
   int current_col_{0};
+  DebugProtocol *debug_;
 };
 
 class TSourceWindow : public TWindow {

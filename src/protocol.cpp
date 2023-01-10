@@ -103,10 +103,13 @@ bool DebugProtocol::UpdateCallStack() {
 bool DebugProtocol::UpdateState() { 
   if (auto state = Get("state")) {
     const auto parts = wwiv::strings::SplitString(state.value(), " ");
-    state_.module = wwiv::strings::to_number<int>(parts[0]);
-    state_.pos = wwiv::strings::to_number<int>(parts[1]);
-    state_.line = wwiv::strings::to_number<int>(parts[2]);
-    state_.col = wwiv::strings::to_number<int>(parts[3]);
+    int part = 0;
+    if (parts.size() >= 4) {
+      state_.module = parts[part++];
+    }
+    state_.pos = wwiv::strings::to_number<int>(parts[part++]);
+    state_.line = wwiv::strings::to_number<int>(parts[part++]);
+    state_.col = wwiv::strings::to_number<int>(parts[part++]);
 
     // State does not go into the queue
     message(app_, evBroadcast, cmDebugStateChanged, 0);
@@ -120,43 +123,51 @@ bool DebugProtocol::attached() const {
   return attached_;
 }
 
+void DebugProtocol::set_attached(bool a) {
+  std::lock_guard<std::mutex> lock(mu_);
+  attached_ = a;
+}
+
 bool DebugProtocol::Attach() {
-  {
-    std::lock_guard<std::mutex> lock(mu_);
-    if (attached_) {
-      return false;
-    }
+  if (attached()) {
+    return false;
   }
   if (auto body = Post("attach")) {
-    {
-      std::lock_guard<std::mutex> lock(mu_);
-      attached_ = true;
-    }
-    auto handler = message(app_, evBroadcast, cmDebugAttached, 0);
+    set_attached(true);
+    message(app_, evBroadcast, cmDebugAttached, 0);
     return true;
   }
   return false;
 }
 
 bool DebugProtocol::Detach() {
-  {
-    std::lock_guard<std::mutex> lock(mu_);
-    if (!attached_) {
-      return false;
-    }
+  if (!attached()) {
+    return false;
   }
   if (auto body = Post("detach")) {
-    {
-      std::lock_guard<std::mutex> lock(mu_);
-      attached_ = true;
-    }
-    message(desktop_, evBroadcast, cmDebugDetached, 0);
+    set_attached(false);
+    message(app_, evBroadcast, cmDebugDetached, 0);
     return true;
   }
   return false;
 }
 
+bool DebugProtocol::StepOver() {
+  if (!attached()) {
+    return false;
+  }
+  Post("stepover");
+  return UpdateState();
+}
 
+
+bool DebugProtocol::TraceIn() {
+  if (!attached()) {
+    return false;
+  }
+  Post("tracein");
+  return UpdateState();
+}
 std::optional<std::string> DebugProtocol::Get(const std::string& part) {
   const auto uri = fmt::format("/debug/v1/{}", part);
   if (auto res = cli_->Get(uri)) {
@@ -171,7 +182,7 @@ std::optional<std::string> DebugProtocol::Get(const std::string& part) {
 
 std::optional<std::string> DebugProtocol::Post(const std::string &part) {
   const auto uri = fmt::format("/debug/v1/{}", part);
-  if (auto res = cli_->Post(uri, "wwivdbg v0", "text/plain")) {
+  if (auto res = cli_->Post(uri)) {
     if (res->status != 200) {
       // TODO(rushfan): Log error.
       return std::nullopt;

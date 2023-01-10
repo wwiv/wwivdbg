@@ -82,7 +82,10 @@ public:
   bool UpdateState();
   bool Attach();
   bool Detach();
+  bool StepOver();
+  bool TraceIn();
   bool attached() const;
+  void set_attached(bool a);
 
 
 private:
