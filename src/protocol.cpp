@@ -26,6 +26,7 @@
 #define Uses_TApplication
 
 #include "tvision/tv.h"
+#include <nlohmann/json.hpp>
 
 
 DebugProtocol::DebugProtocol(TApplication *app, TView *desktop,
@@ -100,20 +101,29 @@ bool DebugProtocol::UpdateCallStack() {
   return false;
 }
 
+using json = nlohmann::json;
+bool DebugProtocol::UpdateState(const std::string& s) {
+  json j = json::parse(s);
+  const auto& loc = j["location"];
+  state_.module = loc["module"].get<std::string>();
+  state_.pos = loc["pos"].get<int>();
+  state_.row = loc["row"].get<int>();
+  state_.col = loc["col"].get<int>();
+
+  const auto& jvars = j["vars"];
+  variables_.clear();
+  for (const auto& v : jvars) {
+    variables_.push_back(v.get<Variable>());
+  }
+
+  // State does not go into the queue
+  message(app_, evBroadcast, cmDebugStateChanged, 0);
+  return true;
+}
+
 bool DebugProtocol::UpdateState() { 
   if (auto state = Get("state")) {
-    const auto parts = wwiv::strings::SplitString(state.value(), " ");
-    int part = 0;
-    if (parts.size() >= 4) {
-      state_.module = parts[part++];
-    }
-    state_.pos = wwiv::strings::to_number<int>(parts[part++]);
-    state_.line = wwiv::strings::to_number<int>(parts[part++]);
-    state_.col = wwiv::strings::to_number<int>(parts[part++]);
-
-    // State does not go into the queue
-    message(app_, evBroadcast, cmDebugStateChanged, 0);
-    return true;
+    return UpdateState(state.value());
   }
   return false;
 }
@@ -156,7 +166,9 @@ bool DebugProtocol::StepOver() {
   if (!attached()) {
     return false;
   }
-  Post("stepover");
+  if (auto state = Post("stepover")) {
+    return UpdateState(state.value());
+  }
   return UpdateState();
 }
 
@@ -192,6 +204,15 @@ std::optional<std::string> DebugProtocol::Post(const std::string &part) {
   return std::nullopt;
 }
 
-std::string DebugState::to_string() { 
-  return fmt::format("State: pos:{} line:{} col:{}", pos, line, col);
+
+// JSON
+
+void to_json(nlohmann::json& j, const Variable& v) {
+  j = nlohmann::json{ {"name", v.name}, {"type", v.type}, {"value", v.value} };
+}
+
+void from_json(const nlohmann::json& j, Variable& v) {
+  j.at("name").get_to(v.name);
+  j.at("type").get_to(v.type);
+  j.at("value").get_to(v.value);
 }

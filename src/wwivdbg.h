@@ -54,6 +54,7 @@ private:
   TEditWindow *openEditor(const std::string& fileName, Boolean visible);
   TStackWindow* findStackWindow();
   TSourceWindow* findSourceWindow();
+  TVarsWindow* findVarsWindow();
   TBreakpointsWindow* findBreakpointsWindow();
   void fileOpen();
   void fileNew();

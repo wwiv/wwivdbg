@@ -14,15 +14,17 @@ find_package(tvision CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
  find_package(httplib CONFIG REQUIRED)
 add_executable(wwivdbg 
-  "src/wwivdbg.cpp" 
   "src/breakpoints.cpp" 
-  "src/strings.cpp" 
-  "src/stack.cpp" 
-  "src/protocol.cpp" 
-  "src/utils.cpp"
+  "src/editor.cpp"
   "src/menu.cpp"
+  "src/protocol.cpp" 
   "src/source.cpp"
-  "src/editor.cpp")
+  "src/stack.cpp" 
+  "src/strings.cpp" 
+  "src/utils.cpp"
+  "src/vars.cpp" 
+  "src/wwivdbg.cpp" 
+)
 target_compile_features(wwivdbg PRIVATE cxx_std_17)
 
 target_link_libraries(wwivdbg PRIVATE 

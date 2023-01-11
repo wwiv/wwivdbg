@@ -78,9 +78,10 @@ TMenuBar *CreateMenuBar(TRect &r) {
 
   TSubMenu &menuView =
       *new TSubMenu("~V~iew", kbAltV) +
-      *new TMenuItem("~B~reakpoints...", cmViewBreakpoints, kbAltB, hcNoContext,
+      *new TMenuItem("~B~reakpoints", cmViewBreakpoints, kbAltB, hcNoContext,
                      "Alt-B") +
-      *new TMenuItem("S~t~ack...", cmViewStack, kbAltT, hcNoContext, "Alt-T") +
+      *new TMenuItem("S~t~ack", cmViewStack, kbNoKey) +
+      *new TMenuItem("~L~ocals", cmViewVars, kbNoKey) +
       *new TMenuItem("S~o~urce", cmViewSource, kbAltO, hcNoContext, "Alt-O");
 
   TSubMenu &menuDebug =

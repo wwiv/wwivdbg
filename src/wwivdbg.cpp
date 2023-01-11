@@ -51,6 +51,7 @@
 #include "source.h"
 #include "stack.h"
 #include "utils.h"
+#include "vars.h"
 #include "wwivdbg.h"
 #include <memory>
 #include <string>
@@ -120,7 +121,7 @@ TSourceWindow* TDebuggerApp::findSourceWindow() {
   ptrdiff_t cmd = cmViewSource;
   if (auto *o = message(deskTop, evBroadcast, cmFindWindow,
                         reinterpret_cast<void *>(cmd))) {
-    TSourceWindow *window = reinterpret_cast<TSourceWindow *>(o);
+    auto *window = reinterpret_cast<TSourceWindow *>(o);
     window->select();
     return window;
   }
@@ -130,6 +131,23 @@ TSourceWindow* TDebuggerApp::findSourceWindow() {
   // cap botton at 70%
   r.b.y = r.b.y * .7;
   auto *window = new TSourceWindow(r, debug_);
+  deskTop->insert(window);
+  return window;
+}
+
+TVarsWindow* TDebuggerApp::findVarsWindow() {
+  ptrdiff_t cmd = cmViewVars;
+  if (auto* o = message(deskTop, evBroadcast, cmFindWindow,
+    reinterpret_cast<void*>(cmd))) {
+    auto* window = reinterpret_cast<TVarsWindow*>(o);
+    window->select();
+    return window;
+  }
+
+  TRect r = deskTop->getExtent();
+  // Move down 70% 
+  r.a.y = (r.b.y * 0.7);
+  auto* window = new TVarsWindow(r, debug_);
   deskTop->insert(window);
   return window;
 }
@@ -239,8 +257,10 @@ void TDebuggerApp::handleCommand(TEvent &event) {
     findBreakpointsWindow();
   } break;
   case cmViewSource: {
-    auto* s = findSourceWindow();
-    //s->SetText("this\nis\na\ntest\n\nHello\nWorld\n\n");
+    findSourceWindow();
+  } break;
+  case cmViewVars: {
+    findVarsWindow();
   } break;
   case cmDebugRun:
     messageBox("Implement Run", mfOKButton | mfError);

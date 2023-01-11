@@ -17,6 +17,7 @@
 #ifndef INCLUDED_WWIVDBG_PROTOCOL_H
 #define INCLUDED_WWIVDBG_PROTOCOL_H
 
+#include <nlohmann/json_fwd.hpp>
 #include <deque>
 #include <map>
 #include <memory>
@@ -25,6 +26,14 @@
 #include <string>
 #include <thread>
 
+// copied from wwiv
+struct Variable {
+  std::string name;
+  std::string type;
+  std::string value;
+};
+void to_json(nlohmann::json& j, const Variable& p);
+void from_json(const nlohmann::json& j, Variable& p);
 
 class DebugMessage {
 public:
@@ -40,10 +49,8 @@ class DebugState {
 public:
   std::string module;
   int pos{0};
-  int line{0};
+  int row{0};
   int col{0};
-
-  std::string to_string();
 };
 
 class TApplication;
@@ -77,8 +84,10 @@ public:
   bool UpdateSource();
   // Latest updated source
   std::string source() { return source_;  }
+  std::vector<Variable> vars() { return variables_; }
   DebugState state() { return state_; }
   bool UpdateCallStack();
+  bool UpdateState(const std::string& state);
   bool UpdateState();
   bool Attach();
   bool Detach();
@@ -93,7 +102,6 @@ private:
   std::optional<std::string> Post(const std::string &part);
 
   std::unique_ptr<httplib::Client> cli_;
-  //std::deque<DebugMessage> queue_;
   std::map<DebugMessage::Type, std::deque<DebugMessage>> queue_;
   mutable std::mutex mu_;
   TApplication *app_; 
@@ -103,6 +111,7 @@ private:
   bool attached_{false};
 
   std::string source_;
+  std::vector<Variable> variables_;
   DebugState state_;
 };
 

@@ -42,9 +42,9 @@ public:
   void SetText(const std::string &text);
   void SetText(const std::vector<std::string> &text);
 
-  void UpdateLocation(int pos, int line, int col) {
+  void UpdateLocation(int pos, int row, int col) {
     current_pos_ = pos;
-    current_line_ = line;
+    current_line_ = std::max(0, row - 1);
     current_col_ = col;
     scrollTo(current_col_, current_line_);
   }
@@ -68,7 +68,7 @@ public:
   ~TSourceWindow();
 
   virtual void handleEvent(TEvent &event) override;
-
+  TScrollBar* standardScrollBar(ushort aOptions);
   void SetText(const std::vector<std::string> &text);
   void SetText(const std::string &text);
 };

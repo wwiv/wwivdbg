@@ -108,7 +108,6 @@ static std::string replace_tabs(const std::string &l) {
 }
 
 void TSourcePane::draw() { 
-  //auto palette = getPalette();
   const auto attached = debug_->attached();
   const auto normal_color = getColor(0x0301);
   const auto selected_color = getColor(0x201);
@@ -132,6 +131,23 @@ void TSourcePane::draw() {
     writeLine(0, i, size.x, 1, b);
   }
 }
+
+TScrollBar* TSourceWindow::standardScrollBar(ushort aOptions)
+{
+  TRect r = getExtent();
+  if ((aOptions & sbVertical) != 0)
+    r = TRect(r.b.x - 1, r.a.y + 1, r.b.x, r.b.y - 1);
+  else
+    r = TRect(r.a.x + 18, r.b.y - 1, r.b.x - 2, r.b.y);
+
+  TScrollBar* s;
+  insert(s = new TScrollBar(r));
+  if ((aOptions & sbHandleKeyboard) != 0) {
+    s->options |= ofPostProcess;
+  }
+  return s;
+}
+
 
 TSourceWindow::TSourceWindow(TRect r, const std::shared_ptr<DebugProtocol>& debug)
     : TWindowInit(TWindow::initFrame),
@@ -164,9 +180,9 @@ void TSourceWindow::handleEvent(TEvent &event) {
     return;
   case cmDebugStateChanged: {
     const auto &s = debug_->state();
-    fp->UpdateLocation(s.pos, s.line, s.col);
+    fp->UpdateLocation(s.pos, s.row, s.col);
     fp->draw();
-    clearEvent(event);
+    // DO NOT CLEAR event
   } break;
   }
   TWindow::handleEvent(event);

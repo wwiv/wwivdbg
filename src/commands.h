@@ -24,6 +24,7 @@ constexpr int cmChangeDrct = 102;
 constexpr int cmViewBreakpoints = 103;
 constexpr int cmViewStack = 104;
 constexpr int cmViewSource = 105;
+constexpr int cmViewVars = 106;
 // Help
 constexpr int cmHelpAbout = 130;
 constexpr int cmHelpFoo = 131;
