@@ -52,6 +52,7 @@ protected:
 
 private:
   int pos_{ 0 };
+  int selected_row_{ -1 };
   TIndicator* indicator_{ nullptr };
   TPoint curPos_{ 0, 0 };
 };

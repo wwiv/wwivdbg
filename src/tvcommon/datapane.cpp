@@ -112,6 +112,7 @@ static std::string replace_tabs(const std::string& l) {
 
 void TDataPane::UpdateLocation(int pos, int row, int col) {
   pos_ = pos;
+  selected_row_ = row;
   curPos_.y = std::max(0, row - 1);
   curPos_.x = col;
   trackCursor();
@@ -202,7 +203,7 @@ void TDataPane::draw() {
   const auto selected_color = getColor(0x201);
   for (int i = 0; i < size.y; i++) {
     int j = i + delta.y;
-    const auto c = (hilight_current && j == curPos_.y) ? 2 : 1;
+    const auto c = (hilight_current && j == selected_row_ - 1) ? 2 : 1;
     auto color = getColor(c);
     TDrawBuffer b;
     b.moveChar(0, ' ', color, size.x);
