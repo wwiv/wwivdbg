@@ -36,16 +36,6 @@ struct Variable {
 void to_json(nlohmann::json& j, const Variable& p);
 void from_json(const nlohmann::json& j, Variable& p);
 
-class DebugMessage {
-public:
-  enum class Type { STOPPED, RUNNING, SOURCE, STACK, STATE, BREAKPOINTS };
-  DebugMessage(Type t, std::string m)
-      : msgType(t), message(m) {}
-
-  Type msgType;
-  std::string message;
-};
-
 class DebugState {
 public:
   std::string module;
@@ -76,19 +66,12 @@ public:
   DebugProtocol(TApplication* app, TView *desktop, const std::string &host, int port);
   ~DebugProtocol();
 
-  bool has_message(DebugMessage::Type t) const;
-  DebugMessage next(DebugMessage::Type t);
-  DebugMessage peek(DebugMessage::Type t);
-
-  void add(DebugMessage&& msg);
-
   bool UpdateSource();
   // Latest updated source
   std::string source() { return source_;  }
   std::vector<Variable> vars() { return variables_; }
   std::vector<std::string> stack() { return stack_; }
   DebugState state() { return state_; }
-  bool UpdateCallStack();
   bool UpdateState(const std::string& state);
   bool UpdateState();
   bool Attach();
@@ -98,24 +81,22 @@ public:
   bool attached() const;
   void set_attached(bool a);
 
-
 private:
   std::optional<std::string> Get(const std::string &part);
   std::optional<std::string> Post(const std::string &part);
 
   std::unique_ptr<httplib::Client> cli_;
-  std::map<DebugMessage::Type, std::deque<DebugMessage>> queue_;
   mutable std::mutex mu_;
-  TApplication *app_; 
-  TView *desktop_;
-  const std::string host_;
-  const int port_;
+  TApplication* app_{ nullptr };
+  TView* desktop_{ nullptr };
+  const std::string host_{ "127.0.0.1" };
+  const int port_{ 9948 };
   bool attached_{false};
 
   std::string source_;
   std::vector<Variable> variables_;
   std::vector<std::string> stack_;
-  DebugState state_;
+  DebugState state_{};
 };
 
 

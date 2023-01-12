@@ -57,7 +57,7 @@ TMenuBar *CreateMenuBar(TRect &r) {
       *new TMenuItem("~S~ave", cmSave, kbCtrlS, hcNoContext, "Ctrl-S") +
       *new TMenuItem("S~a~ve as...", cmSaveAs, kbNoKey) + newLine() +
       *new TMenuItem("~C~hange dir...", cmChangeDrct, kbNoKey) +
-      *new TMenuItem("~D~OS shell", cmDosShell, kbNoKey) +
+      *new TMenuItem("~D~OS shell", cmDosShell, kbNoKey) + newLine() +
       *new TMenuItem("E~x~it", cmQuit, kbAltF4, hcNoContext, "Alt-F4");
 
   TSubMenu &menuEdit =

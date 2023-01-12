@@ -39,63 +39,12 @@ DebugProtocol::~DebugProtocol() {
   cli_.reset(nullptr);
 }
 
-bool DebugProtocol::has_message(DebugMessage::Type t) const {
-  std::lock_guard lock(mu_);
-  if (auto it = queue_.find(t); it != queue_.end()) {
-    return !it->second.empty();
-  }
-  return false;
-}
-
-DebugMessage DebugProtocol::next(DebugMessage::Type t) {
-  std::lock_guard<std::mutex> lock(mu_);
-  if (auto it = queue_.find(t); it != queue_.end()) {
-    auto m = it->second.front();
-    it->second.pop_front();
-    return m;
-  }
-  return DebugMessage(DebugMessage::Type::STOPPED, "");
-}
-
-DebugMessage DebugProtocol::peek(DebugMessage::Type t) {
-  std::lock_guard<std::mutex> lock(mu_);
-  if (auto it = queue_.find(t); it != queue_.end()) {
-    if (!it->second.empty()) {
-      return it->second.front();
-    }
-  }
-  return DebugMessage(DebugMessage::Type::STOPPED, "");
-}
-
-void DebugProtocol::add(DebugMessage&& msg) {
-  bool added{false};
-  {
-    std::lock_guard<std::mutex> lock(mu_);
-    // create or replace
-    queue_[msg.msgType].push_back(msg);
-    added = true;
-  }
-  if (added) {
-    ptrdiff_t t = static_cast<int>(msg.msgType);
-    message(app_, evBroadcast, cmDebugAvail, reinterpret_cast<void *>(t));
-  }
-}
 
 bool DebugProtocol::UpdateSource() {
   if (auto source = Get("source")) {
     source_ = source.value();
     // Source does not go into the queue
-    ptrdiff_t t = static_cast<int>(DebugMessage::Type::SOURCE);
-    message(app_, evBroadcast, cmDebugSourceChanged,
-            reinterpret_cast<void *>(t));
-    return true;
-  }
-  return false;
-}
-
-bool DebugProtocol::UpdateCallStack() { 
-  if (auto source = Get("stack")) {
-    add({DebugMessage::Type::STACK, source.value()});
+    message(app_, evBroadcast, cmDebugSourceChanged, 0);
     return true;
   }
   return false;
