@@ -76,7 +76,9 @@ void TDebuggerApp::getEvent(TEvent& event) {
   TApplication::getEvent(event);
   if (event.what == evBroadcast && event.message.command == cmDebugAttached) {
     //OOOO
-    OutputDebugString("cmDebugAttached");
+#ifdef _WIN32
+    // OutputDebugString("cmDebugAttached");
+#endif
   }
 }
 

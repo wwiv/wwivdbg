@@ -101,8 +101,7 @@ TDialog *createReplaceDialog() {
 
 ushort doEditDialog(int dialog, ...) {
   va_list arg;
-  char buf[1000] = {};
-  std::ostringstream os(buf, sizeof(buf) - 1);
+  std::ostringstream os;
   switch (dialog) {
   case edOutOfMemory:
     return messageBox("Not enough memory for this operation",
@@ -111,25 +110,25 @@ ushort doEditDialog(int dialog, ...) {
     va_start(arg, dialog);
     os << "Error reading file " << va_arg(arg, char *) << ".";
     va_end(arg);
-    return messageBox(buf, mfError | mfOKButton);
+    return messageBox(os.str(), mfError | mfOKButton);
   }
   case edWriteError: {
     va_start(arg, dialog);
     os << "Error writing file " << va_arg(arg, char *) << ".";
     va_end(arg);
-    return messageBox(buf, mfError | mfOKButton);
+    return messageBox(os.str(), mfError | mfOKButton);
   }
   case edCreateError: {
     va_start(arg, dialog);
     os << "Error creating file " << va_arg(arg, char *) << ".";
     va_end(arg);
-    return messageBox(buf, mfError | mfOKButton);
+    return messageBox(os.str(), mfError | mfOKButton);
   }
   case edSaveModify: {
     va_start(arg, dialog);
     os << va_arg(arg, char *) << " has been modified. Save?";
     va_end(arg);
-    return messageBox(buf, mfInformation | mfYesNoCancel);
+    return messageBox(os.str(), mfInformation | mfYesNoCancel);
   }
   case edSaveUntitled:
     return messageBox("Save untitled file?", mfInformation | mfYesNoCancel);
