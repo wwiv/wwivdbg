@@ -80,9 +80,9 @@ TMenuBar *CreateMenuBar(TRect &r) {
       *new TSubMenu("~V~iew", kbAltV) +
       *new TMenuItem("~B~reakpoints", cmViewBreakpoints, kbAltB, hcNoContext,
                      "Alt-B") +
-      *new TMenuItem("S~t~ack", cmViewStack, kbNoKey) +
-      *new TMenuItem("~L~ocals", cmViewVars, kbNoKey) +
-      *new TMenuItem("S~o~urce", cmViewSource, kbAltO, hcNoContext, "Alt-O");
+      *new TMenuItem("Call S~t~ack", cmViewStack, kbNoKey) +
+      *new TMenuItem("~L~ocal Variables", cmViewVars, kbNoKey) +
+      *new TMenuItem("Basic S~o~urce", cmViewSource, kbAltO, hcNoContext, "Alt-O");
 
   TSubMenu &menuDebug =
       *new TSubMenu("~D~ebug", kbAltD) +
@@ -106,7 +106,8 @@ TMenuBar *CreateMenuBar(TRect &r) {
       *new TMenuItem("~C~lose", cmClose, kbCtrlW, hcNoContext, "Ctrl+W");
 
   TSubMenu &menuHelp = *new TSubMenu("~H~elp", kbAltH) +
-                       *new TMenuItem("F~o~o...", cmHelpFoo, kbCtrlO, hcNoContext, "Ctrl-O") +
+                       *new TMenuItem("Test Data", cmHelpFoo, kbNoKey) +
+                       newLine() +
                        *new TMenuItem("~A~bout...", cmHelpAbout, kbNoKey);
 
   r.b.y = r.a.y + 1;

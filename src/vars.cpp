@@ -51,46 +51,8 @@
 
 
 TVarsPane::TVarsPane(const TRect &bounds, TScrollBar *hsb, TScrollBar *vsb)
-    : TScroller(bounds, hsb, vsb) {
-  options |= ofFramed;
-  growMode = gfGrowHiY | gfGrowHiX | gfFixed;
-}
+    : TDataPane(bounds, hsb, vsb, /* indicator */ nullptr) {}
 
-void TVarsPane::SetText(const std::vector<Variable> &vars) {
-  lines.clear();
-  for (const auto& v : vars) {
-    lines.push_back(fmt::format("{} ({}): '{}'", v.name, v.type, v.value));
-  }
-  auto max_line_len = 0;
-  for (const auto &l : lines) {
-    if (l.size() > max_line_len) {
-      max_line_len = l.size();
-    }
-  }
-  setLimit(max_line_len, lines.size());
-  draw();
-}
-
-void TVarsPane::draw() { 
-  const auto normal_color = getColor(0x0301);
-  const auto selected_color = getColor(0x201);
-  for (int i = 0; i < size.y; i++) {
-    int j = i + delta.y;
-    TDrawBuffer b;
-    b.moveChar(0, ' ', normal_color, size.x);
-    // make sure we have this line.
-    if (j < lines.size()) {
-      auto& l = lines.at(j);
-      if (delta.x >= std::ssize(l)) {
-        l.clear();
-      } else {
-        l = l.substr(delta.x);
-      }
-      b.moveStr(0, l, normal_color);
-    }
-    writeLine(0, i, size.x, 1, b);
-  }
-}
 
 TVarsWindow::TVarsWindow(TRect r, const std::shared_ptr<DebugProtocol>& debug)
     : TWindowInit(TWindow::initFrame),
@@ -118,8 +80,7 @@ void TVarsWindow::handleEvent(TEvent &event) {
     }
     break;
   case cmDebugStateChanged: {
-    fp->SetText(debug_->vars());
-    fp->draw();
+    SetText(debug_->vars());
     // DO NOT CLEAR clearEvent(event);
   } break;
 
@@ -127,6 +88,12 @@ void TVarsWindow::handleEvent(TEvent &event) {
   TWindow::handleEvent(event);
 }
 
-void TVarsWindow::SetText(const std::vector<Variable> &text) {
-  fp->SetText(text);
+void TVarsWindow::SetText(const std::vector<Variable> &vars) {
+  std::vector<std::string> lines;
+  lines.reserve(vars.size());
+  for (const auto& v : vars) {
+    lines.push_back(fmt::format("{} ({}): '{}'", v.name, v.type, v.value));
+  }
+
+  fp->SetText(lines);
 }

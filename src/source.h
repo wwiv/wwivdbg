@@ -42,12 +42,6 @@ public:
   bool hilightCurrentLine();
 
 private:
-  //std::vector<std::string> lines;
-  //int current_pos_{0};
-  //int current_line_{0};
-  //int current_col_{0};
-  //TIndicator* indicator_{ nullptr };
-  //TPoint curPos_{ 0, 0 };
   DebugProtocol* debug_;
 };
 

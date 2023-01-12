@@ -24,21 +24,17 @@
 
 #include "tvision/tv.h"
 
+#include "tvcommon/datapane.h"
 #include <string>
 #include <vector>
 
 class Variable;
 
-class TVarsPane : public TScroller {
+class TVarsPane : public TDataPane {
 
 public:
   TVarsPane(const TRect &bounds, TScrollBar *hsb, TScrollBar *vsb);
   ~TVarsPane() = default;
-  virtual void draw();
-  void SetText(const std::vector<Variable> &text);
-
-private:
-  std::vector<std::string> lines;
 };
 
 class TVarsWindow : public TWindow {
