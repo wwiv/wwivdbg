@@ -25,6 +25,7 @@
 #define Uses_TFileDialog
 #define Uses_TFileEditor
 #define Uses_THistory
+#define Uses_TIndicator
 #define Uses_TInputLine
 #define Uses_TKeys
 #define Uses_TLabel
@@ -50,86 +51,22 @@
 
 
 TSourcePane::TSourcePane(const TRect &bounds, TScrollBar *hsb, TScrollBar *vsb,
-                         DebugProtocol* debug)
-    : TScroller(bounds, hsb, vsb), debug_(debug) {
-  options |= ofFramed;
-  growMode = gfGrowHiY | gfGrowHiX | gfFixed;
+                         TIndicator *indicator, DebugProtocol *debug)
+    : TDataPane(bounds, hsb, vsb, indicator), debug_(debug) {
+  normalCursor();
 }
 
-// Split a string into lines
-static std::vector<std::string> split_string_by_newline(const std::string &str) {
-  auto result = std::vector<std::string>{};
-  auto ss = std::stringstream{str};
-
-  for (std::string line; std::getline(ss, line, '\n');)
-    result.push_back(line);
-
-  return result;
+bool TSourcePane::hilightCurrentLine() {
+  return debug_ && debug_->attached();
 }
 
-void TSourcePane::SetText(const std::string &text) {
-  const auto lines = split_string_by_newline(text);
-  SetText(lines);
+
+void TSourcePane::doUpdate() {
+  TDataPane::doUpdate();
 }
 
-void TSourcePane::SetText(const std::vector<std::string> &text) {
-  lines = text;
-  auto max_line_len = 0;
-  for (const auto &l : lines) {
-    if (l.size() > max_line_len) {
-      max_line_len = l.size();
-    }
-  }
-  setLimit(max_line_len, lines.size());
-  draw();
-}
-
-// hacky way to fix up tabs and stuff since it renders as 'o'
-static std::string replace_tabs(const std::string &l) { 
-  std::string out;
-  out.reserve(l.size() + 20);
-  for (const auto c : l) {
-    if (c < 0) {
-      // high ascii?
-    } else if (c < 32) {
-      switch (c) {
-      case '\t': {
-        while ((out.size() % 8) != 0) {
-          out.push_back(' ');
-        }
-      } break;
-      }
-      // control chars?
-    } else {
-      out.push_back(c);
-    }
-  }
-  return out;
-}
-
-void TSourcePane::draw() { 
-  const auto attached = debug_->attached();
-  const auto normal_color = getColor(0x0301);
-  const auto selected_color = getColor(0x201);
-  for (int i = 0; i < size.y; i++) {
-    int j = i + delta.y;
-    const auto c = (attached && j == current_line_) ? 2 : 1;
-    auto color = getColor(c);
-    TDrawBuffer b;
-    b.moveChar(0, ' ', color, size.x);
-    // make sure we have this line.
-    if (j < lines.size()) {
-      auto& l = lines.at(j);
-      if (delta.x >= std::ssize(l)) {
-        l.clear();
-      } else {
-        l = l.substr(delta.x);
-      }
-      l = replace_tabs(l);
-      b.moveStr(0, l, color);
-    }
-    writeLine(0, i, size.x, 1, b);
-  }
+void TSourcePane::handleEvent(TEvent& event) {
+  TDataPane::handleEvent(event);
 }
 
 TScrollBar* TSourceWindow::standardScrollBar(ushort aOptions)
@@ -155,7 +92,8 @@ TSourceWindow::TSourceWindow(TRect r, const std::shared_ptr<DebugProtocol>& debu
 
   hsb = standardScrollBar(sbHorizontal | sbHandleKeyboard);
   vsb = standardScrollBar(sbVertical | sbHandleKeyboard);
-  insert(fp = new TSourcePane(getClipRect().grow(-1, -1), hsb, vsb, debug.get()));
+  insert(indicator_ = new TIndicator(TRect(2, size.y - 1, 16, size.y)));
+  insert(fp = new TSourcePane(getClipRect().grow(-1, -1), hsb, vsb, indicator_, debug.get()));
   fp->SetText(debug->source());
 }
 
@@ -195,3 +133,5 @@ void TSourceWindow::SetText(const std::vector<std::string> &text) {
 void TSourceWindow::SetText(const std::string &text) {
   fp->SetText(text);
 }
+
+

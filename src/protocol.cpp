@@ -116,6 +116,12 @@ bool DebugProtocol::UpdateState(const std::string& s) {
     variables_.push_back(v.get<Variable>());
   }
 
+  const auto& jstack = j["stack"];
+  stack_.clear();
+  for (const auto& v : jstack) {
+    stack_.push_back(v.get<std::string>());
+  }
+
   // State does not go into the queue
   message(app_, evBroadcast, cmDebugStateChanged, 0);
   return true;
@@ -208,11 +214,16 @@ std::optional<std::string> DebugProtocol::Post(const std::string &part) {
 // JSON
 
 void to_json(nlohmann::json& j, const Variable& v) {
-  j = nlohmann::json{ {"name", v.name}, {"type", v.type}, {"value", v.value} };
+  j = nlohmann::json{ 
+    {"name", v.name}, 
+    {"type", v.type}, 
+    {"frame", v.frame}, 
+    {"value", v.value} };
 }
 
 void from_json(const nlohmann::json& j, Variable& v) {
   j.at("name").get_to(v.name);
   j.at("type").get_to(v.type);
+  j.at("frame").get_to(v.frame);
   j.at("value").get_to(v.value);
 }

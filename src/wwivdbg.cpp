@@ -111,8 +111,7 @@ TStackWindow *TDebuggerApp::findStackWindow() {
   TRect r = deskTop->getExtent();
   // Move down 70%
   r.a.y = (r.b.y * .7);
-  auto wn = ++windowNumber_;
-  auto *window = new TStackWindow(r, "Call Stack", wn);
+  auto *window = new TStackWindow(r, debug_);
   deskTop->insert(window);
   return window;
 }

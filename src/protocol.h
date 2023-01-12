@@ -31,6 +31,7 @@ struct Variable {
   std::string name;
   std::string type;
   std::string value;
+  int frame;
 };
 void to_json(nlohmann::json& j, const Variable& p);
 void from_json(const nlohmann::json& j, Variable& p);
@@ -85,6 +86,7 @@ public:
   // Latest updated source
   std::string source() { return source_;  }
   std::vector<Variable> vars() { return variables_; }
+  std::vector<std::string> stack() { return stack_; }
   DebugState state() { return state_; }
   bool UpdateCallStack();
   bool UpdateState(const std::string& state);
@@ -112,6 +114,7 @@ private:
 
   std::string source_;
   std::vector<Variable> variables_;
+  std::vector<std::string> stack_;
   DebugState state_;
 };
 

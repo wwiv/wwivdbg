@@ -23,46 +23,35 @@
 #define Uses_TScrollBar
 
 #include "tvision/tv.h"
-
+#include "tvcommon/datapane.h"
 #include <memory>
 #include <string>
 #include <vector>
 
 class DebugProtocol;
 
-class TSourcePane : public TScroller {
+class TSourcePane : public TDataPane {
 
 public:
-  TSourcePane(const TRect &bounds, TScrollBar *hsb, TScrollBar *vsb,
+  TSourcePane(const TRect &bounds, TScrollBar *hsb, TScrollBar *vsb, TIndicator* indicator,
               DebugProtocol* debug);
   ~TSourcePane() = default;
-  virtual void draw();
+  virtual void handleEvent(TEvent& event) override;
 
-  // Sets the text buffer either as lines or text.
-  void SetText(const std::string &text);
-  void SetText(const std::vector<std::string> &text);
-
-  void UpdateLocation(int pos, int row, int col) {
-    current_pos_ = pos;
-    current_line_ = std::max(0, row - 1);
-    current_col_ = col;
-    scrollTo(current_col_, current_line_);
-  }
+  void doUpdate();
+  bool hilightCurrentLine();
 
 private:
-  std::vector<std::string> lines;
-  int current_pos_{0};
-  int current_line_{0};
-  int current_col_{0};
-  DebugProtocol *debug_;
+  //std::vector<std::string> lines;
+  //int current_pos_{0};
+  //int current_line_{0};
+  //int current_col_{0};
+  //TIndicator* indicator_{ nullptr };
+  //TPoint curPos_{ 0, 0 };
+  DebugProtocol* debug_;
 };
 
 class TSourceWindow : public TWindow {
-private:
-  TSourcePane *fp;
-  TScrollBar *hsb, *vsb;
-  std::shared_ptr<DebugProtocol> debug_;
-
 public:
   TSourceWindow(TRect r, const std::shared_ptr<DebugProtocol>& debug);
   ~TSourceWindow();
@@ -71,6 +60,12 @@ public:
   TScrollBar* standardScrollBar(ushort aOptions);
   void SetText(const std::vector<std::string> &text);
   void SetText(const std::string &text);
+
+private:
+  TSourcePane* fp;
+  TScrollBar* hsb, * vsb;
+  std::shared_ptr<DebugProtocol> debug_;
+  TIndicator* indicator_;
 };
 
 

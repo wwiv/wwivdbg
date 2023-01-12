@@ -17,20 +17,37 @@
 #ifndef INCLUDED_WWIVDBG_STACK_H
 #define INCLUDED_WWIVDBG_STACK_H
 
+#define Uses_TScrollBar
+#define Uses_TRect
+#define Uses_TScroller
+#define Uses_TScrollBar
+
 #include "tvision/tv.h"
+
+#include "protocol.h"
 #include <string>
 
-class TStackInterior : public TView {
+class TStackInterior : public TScroller {
 public:
-  TStackInterior(const TRect &bounds);
+  TStackInterior(const TRect &bounds, TScrollBar* hsb, TScrollBar* vsb);
   virtual void draw();
+  void SetText(const std::vector<std::string>& text);
+
+private:
+  std::vector<std::string> lines;
 };
 
 class TStackWindow : public TWindow {
 public:
-  TStackWindow(const TRect &r, const std::string &title, int windowNumber);
-  virtual void handleEvent(TEvent &event) override;
+  TStackWindow(const TRect &r, const std::shared_ptr<DebugProtocol>& debug);
   ~TStackWindow();
+  virtual void handleEvent(TEvent &event) override;
+  void UpdateStack(const std::vector<std::string>& stack);
+
+private:
+  std::shared_ptr<DebugProtocol> debug_;
+  TStackInterior* fp{ nullptr };
+  TScrollBar* hsb, * vsb;
 };
 
 #endif

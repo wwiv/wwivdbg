@@ -45,27 +45,55 @@
 
 #include "commands.h"
 #include "stack.h"
+#include "strings.h"
 #include <memory>
 #include <sstream>
 #include <string>
 
-TStackInterior::TStackInterior(const TRect &r) : TView(r) {
+TStackInterior::TStackInterior(const TRect &r, TScrollBar *hsb, TScrollBar *vsb)
+    : TScroller(r, hsb, vsb) {
   growMode = gfGrowHiX | gfGrowHiY;
   options |= ofFramed;
 }
 
 void TStackInterior::draw() {
-  TView::draw();
-  writeStr(2, 1, "Hello World", 1);
+  const auto normal_color = getColor(0x0301);
+  const auto selected_color = getColor(0x201);
+  for (int i = 0; i < size.y; i++) {
+    int j = i + delta.y;
+    TDrawBuffer b;
+    b.moveChar(0, ' ', normal_color, size.x);
+    // make sure we have this line.
+    if (j < lines.size()) {
+      auto& l = lines.at(j);
+      if (delta.x >= std::ssize(l)) {
+        l.clear();
+      }
+      else {
+        l = l.substr(delta.x);
+      }
+      b.moveStr(0, l, normal_color);
+    }
+    writeLine(0, i, size.x, 1, b);
+  }
 }
 
-TStackWindow::TStackWindow(const TRect &r, const std::string &title,
-                           int windowNumber)
-    : TWindowInit(&TWindow::initFrame), TWindow(r, title, windowNumber) {
+void TStackInterior::SetText(const std::vector<std::string>& text) {
+  lines = text;
+}
+
+TStackWindow::TStackWindow(const TRect &r, const std::shared_ptr<DebugProtocol>& debug)
+  : TWindowInit(&TWindow::initFrame), TWindow(r, "Call Stack", 0), debug_(debug) {
   auto inner = getClipRect();
   inner.grow(-1, -1);
-  insert(new TStackInterior(inner));
+
+  hsb = standardScrollBar(sbHorizontal | sbHandleKeyboard);
+  vsb = standardScrollBar(sbVertical | sbHandleKeyboard);
+  insert(fp = new TStackInterior(inner, hsb, vsb));
 };
+
+TStackWindow::~TStackWindow() {
+}
 
 void TStackWindow::handleEvent(TEvent& event) {
   // Only handle broadcast events in here for now.
@@ -79,10 +107,16 @@ void TStackWindow::handleEvent(TEvent& event) {
       clearEvent(event);
       return;
     }
+  case cmDebugStateChanged: {
+    UpdateStack(debug_->stack());
+    fp->draw();
+    // DO NOT CLEAR clearEvent(event);
+  } break;
   }
   TWindow::handleEvent(event);
 }
 
-TStackWindow::~TStackWindow() {
 
+void TStackWindow::UpdateStack(const std::vector<std::string>& stack) {
+  fp->SetText(stack);
 }

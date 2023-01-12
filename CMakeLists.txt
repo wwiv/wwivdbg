@@ -12,7 +12,17 @@ set (CMAKE_CXX_STANDARD 20)
 find_package(fmt CONFIG REQUIRED)
 find_package(tvision CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
- find_package(httplib CONFIG REQUIRED)
+find_package(httplib CONFIG REQUIRED)
+
+add_library(tvcommon 
+  "src/tvcommon/datapane.cpp"
+)
+target_compile_features(tvcommon PRIVATE cxx_std_17)
+target_link_libraries(tvcommon PRIVATE 
+  fmt::fmt 
+  tvision::tvision
+)
+
 add_executable(wwivdbg 
   "src/breakpoints.cpp" 
   "src/editor.cpp"
@@ -24,7 +34,7 @@ add_executable(wwivdbg
   "src/utils.cpp"
   "src/vars.cpp" 
   "src/wwivdbg.cpp" 
-)
+ "src/tvcommon/datapane.h")
 target_compile_features(wwivdbg PRIVATE cxx_std_17)
 
 target_link_libraries(wwivdbg PRIVATE 
@@ -32,4 +42,5 @@ target_link_libraries(wwivdbg PRIVATE
   httplib::httplib
   nlohmann_json::nlohmann_json
   tvision::tvision
+  tvcommon
 )
