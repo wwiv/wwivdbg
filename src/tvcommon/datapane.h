@@ -47,8 +47,10 @@ public:
   virtual void trackCursor();
   void setCurPos(int x, int y) { curPos_.x = x; curPos_.y = y; }
 
-private:
+protected:
   std::vector<std::string> lines;
+
+private:
   int pos_{ 0 };
   TIndicator* indicator_{ nullptr };
   TPoint curPos_{ 0, 0 };

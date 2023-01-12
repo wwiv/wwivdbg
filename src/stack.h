@@ -23,18 +23,14 @@
 #define Uses_TScrollBar
 
 #include "tvision/tv.h"
+#include "tvcommon/datapane.h"
 
 #include "protocol.h"
 #include <string>
 
-class TStackInterior : public TScroller {
+class TStackInterior : public TDataPane {
 public:
   TStackInterior(const TRect &bounds, TScrollBar* hsb, TScrollBar* vsb);
-  virtual void draw();
-  void SetText(const std::vector<std::string>& text);
-
-private:
-  std::vector<std::string> lines;
 };
 
 class TStackWindow : public TWindow {

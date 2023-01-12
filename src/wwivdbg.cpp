@@ -219,9 +219,9 @@ void TDebuggerApp::handleEvent(TEvent &event) {
 void TDebuggerApp::handleBroadcast(TEvent &event) {
   switch (event.message.command) { 
   case cmDebugAttached: {
+    // Ensure the source window is open
+    findSourceWindow();
     debug_->UpdateSource();
-    debug_->UpdateCallStack();
-    debug_->UpdateState();
 
     enableCommands(attached_cmds_);
     disableCommands(detached_cmds_);

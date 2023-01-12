@@ -23,20 +23,15 @@
 #define Uses_TScrollBar
 
 #include "tvision/tv.h"
-
+#include "tvcommon/datapane.h"
 #include <string>
 #include <vector>
 
-class TBreakpointsPane : public TScroller {
+class TBreakpointsPane : public TDataPane {
 
 public:
   TBreakpointsPane(const TRect &bounds, TScrollBar *hsb, TScrollBar *vsb);
   ~TBreakpointsPane() = default;
-  virtual void draw();
-  void SetText(const std::vector<std::string> &text);
-
-private:
-  std::vector<std::string> lines;
 };
 
 class TBreakpointsWindow : public TWindow {

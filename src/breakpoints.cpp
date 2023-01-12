@@ -41,6 +41,7 @@
 #define Uses_TSubMenu
 
 #include "tvision/tv.h"
+#include "tvcommon/datapane.h"
 #include "fmt/format.h"
 #include "commands.h"
 #include "breakpoints.h"
@@ -50,42 +51,7 @@
 
 
 TBreakpointsPane::TBreakpointsPane(const TRect &bounds, TScrollBar *hsb, TScrollBar *vsb)
-    : TScroller(bounds, hsb, vsb) {
-  options |= ofFramed;
-  growMode = gfGrowHiY | gfGrowHiX | gfFixed;
-}
-
-void TBreakpointsPane::SetText(const std::vector<std::string> &text) {
-  lines = text;
-  auto max_line_len = 0;
-  for (const auto &l : lines) {
-    if (l.size() > max_line_len) {
-      max_line_len = l.size();
-    }
-  }
-  setLimit(max_line_len, lines.size());
-  draw();
-}
-
-void TBreakpointsPane::draw() { 
-  if (int j = delta.y; j < lines.size()) {
-    auto c = ((j+1 % 6) << 8) | 0x01;
-    auto color = getColor(c);
-    TDrawBuffer b;
-    b.moveChar(0, ' ', color, size.x);
-    // make sure we have this line.
-    //auto l = lines.at(j);
-    auto l = fmt::format("This is line #", j);
-    if (delta.x >= std::ssize(l)) {
-      l.clear();
-    } else {
-      l = l.substr(delta.x);
-    }
-    l = fmt::format("This is line #", j);
-    b.moveStr(0, l, color);
-    writeLine(0, j - delta.y, size.x, 1, b);
-  }
-}
+    : TDataPane(bounds, hsb, vsb, nullptr) {}
 
 TBreakpointsWindow::TBreakpointsWindow(TRect r)
     : TWindowInit(TWindow::initFrame),
@@ -110,6 +76,10 @@ void TBreakpointsWindow::handleEvent(TEvent &event) {
       clearEvent(event);
       return;
     }
+  case cmDebugStateChanged: {
+    //UpdateBreakpoints(debug_->breakpoints());
+    // DO NOT CLEAR clearEvent(event);
+  } break;
   }
   TWindow::handleEvent(event);
 }

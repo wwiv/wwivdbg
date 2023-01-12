@@ -48,9 +48,9 @@
 #include <string>
 
 
-TDataPane::TDataPane(const TRect& bounds, TScrollBar* hsb, TScrollBar* vsb,
-  TIndicator* indicator)
-  : TScroller(bounds, hsb, vsb), indicator_(indicator) {
+TDataPane::TDataPane(const TRect &bounds, TScrollBar *hsb, TScrollBar *vsb,
+                     TIndicator *indicator)
+    : TScroller(bounds, hsb, vsb), indicator_(indicator) {
   options |= ofFramed;
   growMode = gfGrowHiY | gfGrowHiX | gfFixed;
   normalCursor();

@@ -42,7 +42,8 @@
 #define Uses_TSubMenu
 
 #include "tvision/tv.h"
-
+#include "tvcommon/datapane.h"
+#include "fmt/format.h"
 #include "commands.h"
 #include "stack.h"
 #include "strings.h"
@@ -51,36 +52,7 @@
 #include <string>
 
 TStackInterior::TStackInterior(const TRect &r, TScrollBar *hsb, TScrollBar *vsb)
-    : TScroller(r, hsb, vsb) {
-  growMode = gfGrowHiX | gfGrowHiY;
-  options |= ofFramed;
-}
-
-void TStackInterior::draw() {
-  const auto normal_color = getColor(0x0301);
-  const auto selected_color = getColor(0x201);
-  for (int i = 0; i < size.y; i++) {
-    int j = i + delta.y;
-    TDrawBuffer b;
-    b.moveChar(0, ' ', normal_color, size.x);
-    // make sure we have this line.
-    if (j < lines.size()) {
-      auto& l = lines.at(j);
-      if (delta.x >= std::ssize(l)) {
-        l.clear();
-      }
-      else {
-        l = l.substr(delta.x);
-      }
-      b.moveStr(0, l, normal_color);
-    }
-    writeLine(0, i, size.x, 1, b);
-  }
-}
-
-void TStackInterior::SetText(const std::vector<std::string>& text) {
-  lines = text;
-}
+    : TDataPane(r, hsb, vsb, nullptr) {}
 
 TStackWindow::TStackWindow(const TRect &r, const std::shared_ptr<DebugProtocol>& debug)
   : TWindowInit(&TWindow::initFrame), TWindow(r, "Call Stack", 0), debug_(debug) {
@@ -90,10 +62,10 @@ TStackWindow::TStackWindow(const TRect &r, const std::shared_ptr<DebugProtocol>&
   hsb = standardScrollBar(sbHorizontal | sbHandleKeyboard);
   vsb = standardScrollBar(sbVertical | sbHandleKeyboard);
   insert(fp = new TStackInterior(inner, hsb, vsb));
+  UpdateStack(debug_->stack());
 };
 
-TStackWindow::~TStackWindow() {
-}
+TStackWindow::~TStackWindow() = default;
 
 void TStackWindow::handleEvent(TEvent& event) {
   // Only handle broadcast events in here for now.
@@ -109,7 +81,6 @@ void TStackWindow::handleEvent(TEvent& event) {
     }
   case cmDebugStateChanged: {
     UpdateStack(debug_->stack());
-    fp->draw();
     // DO NOT CLEAR clearEvent(event);
   } break;
   }
@@ -118,5 +89,11 @@ void TStackWindow::handleEvent(TEvent& event) {
 
 
 void TStackWindow::UpdateStack(const std::vector<std::string>& stack) {
-  fp->SetText(stack);
+  std::vector<std::string> lines;
+  lines.reserve(stack.size());
+  int frame = 0;
+  for (const auto& v : stack) {
+    lines.push_back(fmt::format("F{:03d} | {}", frame++, v));
+  }
+  fp->SetText(lines);
 }

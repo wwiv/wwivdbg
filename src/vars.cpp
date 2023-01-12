@@ -92,7 +92,8 @@ void TVarsWindow::SetText(const std::vector<Variable> &vars) {
   std::vector<std::string> lines;
   lines.reserve(vars.size());
   for (const auto& v : vars) {
-    lines.push_back(fmt::format("{} ({}): '{}'", v.name, v.type, v.value));
+    lines.push_back(fmt::format("F{:03d} | {:<10} | {:<15} | [{}]", 
+      v.frame, v.type, v.name, v.value));
   }
 
   fp->SetText(lines);
