@@ -47,7 +47,7 @@ private:
 
 class TSourceWindow : public TWindow {
 public:
-  TSourceWindow(TRect r, const std::shared_ptr<DebugProtocol>& debug);
+  TSourceWindow(TRect r, const std::string& title, const std::shared_ptr<DebugProtocol>& debug);
   ~TSourceWindow();
 
   virtual void handleEvent(TEvent &event) override;

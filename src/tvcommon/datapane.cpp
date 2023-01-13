@@ -210,7 +210,7 @@ void TDataPane::draw() {
     // make sure we have this line.
     if (j < lines.size()) {
       auto& l = lines.at(j);
-      if (delta.x >= std::ssize(l)) {
+      if (delta.x >= static_cast<int>(l.size())) {
         l.clear();
       }
       else {

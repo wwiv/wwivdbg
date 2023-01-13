@@ -14,7 +14,6 @@
  * language governing permissions and limitations under the License.
  */
 
-
 #include "protocol.h"
 #include "httplib.h"
 #include "strings.h"
@@ -54,6 +53,7 @@ using json = nlohmann::json;
 bool DebugProtocol::UpdateState(const std::string& s) {
   json j = json::parse(s);
   const auto& loc = j["location"];
+  state_.initial_module = j["initial_module"].get<std::string>();
   state_.module = loc["module"].get<std::string>();
   state_.pos = loc["pos"].get<int>();
   state_.row = loc["row"].get<int>();
@@ -98,6 +98,8 @@ bool DebugProtocol::Attach() {
     return false;
   }
   if (auto body = Post("attach")) {
+    json j = json::parse(body.value());
+    state_.initial_module = j["initial_module"].get<std::string>();
     set_attached(true);
     message(app_, evBroadcast, cmDebugAttached, 0);
     return true;
@@ -114,6 +116,8 @@ bool DebugProtocol::Detach() {
     message(app_, evBroadcast, cmDebugDetached, 0);
     return true;
   }
+  // detach anyway if we got an error here.
+  message(app_, evBroadcast, cmDebugDetached, 0);
   return false;
 }
 
@@ -132,9 +136,12 @@ bool DebugProtocol::TraceIn() {
   if (!attached()) {
     return false;
   }
-  Post("tracein");
+  if (auto state = Post("tracein")) {
+    return UpdateState(state.value());
+  }
   return UpdateState();
 }
+
 std::optional<std::string> DebugProtocol::Get(const std::string& part) {
   const auto uri = fmt::format("/debug/v1/{}", part);
   if (auto res = cli_->Get(uri)) {

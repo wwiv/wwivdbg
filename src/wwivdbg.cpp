@@ -131,7 +131,8 @@ TSourceWindow* TDebuggerApp::findSourceWindow() {
   TRect r = deskTop->getExtent();
   // cap botton at 70%
   r.b.y = r.b.y * .7;
-  auto *window = new TSourceWindow(r, debug_);
+  const auto title = fmt::format("Source: {}", debug_->state().initial_module);
+  auto *window = new TSourceWindow(r, title, debug_);
   deskTop->insert(window);
   return window;
 }
@@ -268,12 +269,12 @@ void TDebuggerApp::handleCommand(TEvent &event) {
     break;
   case cmDebugTraceIn:
     if (!debug_->TraceIn()) {
-      messageBox("Implement RunTraceIn", mfOKButton | mfError);
+      messageBox("Error in  RunTraceIn", mfOKButton | mfError);
     }
     break;
   case cmDebugStepOver:
     if (!debug_->StepOver()) {
-      messageBox("Implement RunStepOver", mfOKButton | mfError);
+      messageBox("Error in RunStepOver", mfOKButton | mfError);
     }
     break;
   case cmDebugAttach: {

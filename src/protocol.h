@@ -38,6 +38,7 @@ void from_json(const nlohmann::json& j, Variable& p);
 
 class DebugState {
 public:
+  std::string initial_module;
   std::string module;
   int pos{0};
   int row{0};

@@ -86,9 +86,9 @@ TScrollBar* TSourceWindow::standardScrollBar(ushort aOptions)
 }
 
 
-TSourceWindow::TSourceWindow(TRect r, const std::shared_ptr<DebugProtocol>& debug)
+TSourceWindow::TSourceWindow(TRect r, const std::string& title, const std::shared_ptr<DebugProtocol>& debug)
     : TWindowInit(TWindow::initFrame),
-      TWindow(r, "Source", 0), debug_(debug) {
+      TWindow(r, title, 0), debug_(debug) {
 
   hsb = standardScrollBar(sbHorizontal | sbHandleKeyboard);
   vsb = standardScrollBar(sbVertical | sbHandleKeyboard);
