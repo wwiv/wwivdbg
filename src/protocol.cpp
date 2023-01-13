@@ -71,6 +71,12 @@ bool DebugProtocol::UpdateState(const std::string& s) {
     stack_.push_back(v.get<std::string>());
   }
 
+  const auto& jbreakpoints = j["breakpoints"];
+  for (const auto& v : jbreakpoints) {
+    breakpoints_.UpdateRemote(v);
+    variables_.push_back(v.get<Variable>());
+  }
+
   // State does not go into the queue
   message(app_, evBroadcast, cmDebugStateChanged, 0);
   return true;
@@ -182,4 +188,63 @@ void from_json(const nlohmann::json& j, Variable& v) {
   j.at("type").get_to(v.type);
   j.at("frame").get_to(v.frame);
   j.at("value").get_to(v.value);
+}
+
+
+// Breakpoints
+
+/*
+"breakpoints": [
+  {
+    "function_name": "",
+    "hit_count": 0,
+    "id": 2,
+    "line": 10,
+    "module": "",
+    "typ": "line"
+  }
+],
+*/
+void Breakpoints::UpdateRemote(const nlohmann::json& b) {
+  std::string module = b["module"];
+  int line = b["line"];
+  std::string typ = b["typ"];
+  int64_t remote_id = b["id"];
+
+  std::vector<Breakpoint> toadd;
+  for (auto& lb : breakpoints) {
+    if (lb.remote_id == remote_id) {
+      // Have one already on the server
+      return;
+    }
+    else if ((lb.module.empty() || lb.module == module) && lb.line == line && typ == "line") {
+      // Matching one, not on server.
+      // TODO(rushfan): Push this one to the server and update ID
+      return;
+    }
+  }
+
+  // We have a new one, add it.
+  Breakpoint newb;
+  newb.module =  module;
+  newb.line = line;
+  newb.published = true;
+  newb.remote_id = remote_id;
+  breakpoints.emplace_back(newb);
+}
+
+void Breakpoints::NewLine(const std::string& module, int line) {
+  for (auto& lb : breakpoints) {
+    if ((lb.module.empty() || lb.module == module) && lb.line == line) {
+      // Matching one, not on server.
+      // TODO(rushfan): Push this one to the server and update ID
+      return;
+    }
+  }
+  Breakpoint newb;
+  newb.module = module;
+  newb.line = line;
+  newb.published = false;
+  breakpoints.emplace_back(newb);
+
 }

@@ -45,6 +45,7 @@
 #include "fmt/format.h"
 #include "commands.h"
 #include "breakpoints.h"
+#include "protocol.h"
 #include "utils.h"
 #include <sstream>
 #include <string>
@@ -53,37 +54,83 @@
 TBreakpointsPane::TBreakpointsPane(const TRect &bounds, TScrollBar *hsb, TScrollBar *vsb)
     : TDataPane(bounds, hsb, vsb, nullptr) {}
 
-TBreakpointsWindow::TBreakpointsWindow(TRect r)
+TMenuItem& TBreakpointsPane::initContextMenu(TPoint) {
+  return // *new TMenuItem("~C~opy", cmCopy, kbCtrlC, hcNoContext, "Ctrl-C") + newLine() +
+    *new TMenuItem("Remove ~B~reakpoint", cmBreakpointWindowRemove, kbNoKey);
+}
+
+TBreakpointsWindow::TBreakpointsWindow(TRect r, const std::shared_ptr<DebugProtocol>& debug)
     : TWindowInit(TWindow::initFrame),
-      TWindow(r, "Breakpoints", 0) {
+      TWindow(r, "Breakpoints", 0), debug_(debug) {
 
   hsb = standardScrollBar(sbHorizontal | sbHandleKeyboard);
   vsb = standardScrollBar(sbVertical | sbHandleKeyboard);
   insert(fp = new TBreakpointsPane(getClipRect().grow(-1, -1), hsb, vsb));
+  UpdateBreakpointWindow();
 }
 
 TBreakpointsWindow ::~TBreakpointsWindow() = default;
 
-void TBreakpointsWindow::handleEvent(TEvent &event) {
-  // Only handle broadcast events in here for now.
-  if (event.what != evBroadcast) {
-    TWindow::handleEvent(event);
-    return;
-  }
+void TBreakpointsWindow::handleBroadcastEvent(TEvent& event) {
   switch (event.message.command) {
   case cmFindWindow:
     if (event.message.infoInt == cmViewBreakpoints) {
       clearEvent(event);
-      return;
     }
+    break;
+  case cmBreakpointsChanged:
+    UpdateBreakpointWindow();
+    break;
   case cmDebugStateChanged: {
-    //UpdateBreakpoints(debug_->breakpoints());
+    UpdateBreakpointWindow();
     // DO NOT CLEAR clearEvent(event);
   } break;
+  default:
+    TWindow::handleEvent(event);
   }
-  TWindow::handleEvent(event);
+}
+
+void TBreakpointsWindow::handleCommandEvent(TEvent& event) {
+  switch (event.message.command) {
+  case cmBreakpointWindowRemove: { // command
+    // currentLine is 1 based, we need 0 based.
+    const auto index = std::max<int>(0, fp->currentLine() - 1);
+    auto& b = debug_->breakpoints().breakpoints;
+    if (b.empty()) {
+      return;
+    }
+    auto it = std::begin(b);
+    std::advance(it, index);
+    if (it != std::end(b)) {
+      b.erase(it);
+    }
+    clearEvent(event);
+    message(TProgram::deskTop, evBroadcast, cmBreakpointsChanged, 0);
+  } break;
+  default:
+    TWindow::handleEvent(event);
+  }
+}
+
+
+void TBreakpointsWindow::handleEvent(TEvent& event) {
+  switch (event.what) {
+  case evBroadcast: handleBroadcastEvent(event); break;
+  case evCommand:   handleCommandEvent(event); break;
+  default:          TWindow::handleEvent(event); break;
+  }
 }
 
 void TBreakpointsWindow::SetText(const std::vector<std::string> &text) {
   fp->SetText(text);
+}
+
+void TBreakpointsWindow::UpdateBreakpointWindow() {
+  std::vector< std::string> lines;
+  for (const auto& b : debug_->breakpoints().breakpoints) {
+    const auto l =
+      fmt::format("{:<15} | {:<6} | {:04d}", b.module, "line", b.line);
+    lines.emplace_back(l);
+  }
+  fp->SetText(lines);
 }

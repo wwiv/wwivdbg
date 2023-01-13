@@ -42,6 +42,7 @@
 #define Uses_TSubMenu
 
 #include "tvision/tv.h"
+#include "fmt/format.h"
 #include "commands.h"
 #include "protocol.h"
 #include "source.h"
@@ -67,6 +68,11 @@ void TSourcePane::doUpdate() {
 
 void TSourcePane::handleEvent(TEvent& event) {
   TDataPane::handleEvent(event);
+}
+
+TMenuItem& TSourcePane::initContextMenu(TPoint) {
+  return // *new TMenuItem("~C~opy", cmCopy, kbCtrlC, hcNoContext, "Ctrl-C") + newLine() +
+    *new TMenuItem("Add ~B~reakpoint", cmBreakpointAdd, kbCtrlB, hcNoContext, "Ctrl-B");
 }
 
 TScrollBar* TSourceWindow::standardScrollBar(ushort aOptions)
@@ -101,7 +107,7 @@ TSourceWindow ::~TSourceWindow() = default;
 
 // Only handle broadcast events in here for now.
 void TSourceWindow::handleEvent(TEvent &event) {
-  if (event.what != evBroadcast) {
+  if (event.what != evBroadcast && event.what != evCommand) {
     TWindow::handleEvent(event);
     return;
   }
@@ -112,13 +118,21 @@ void TSourceWindow::handleEvent(TEvent &event) {
       return;
     }
   } break;
+  case cmBreakpointAdd: {
+    const auto line = fp->currentLine();
+    debug_->breakpoints().NewLine(module_, line);
+    clearEvent(event);
+    message(TProgram::deskTop, evBroadcast, cmBreakpointsChanged, 0);
+    return;
+  } break;
   case cmDebugSourceChanged:
     fp->SetText(debug_->source());
     clearEvent(event);
     return;
   case cmDebugStateChanged: {
     const auto &s = debug_->state();
-    fp->UpdateLocation(s.pos, s.row, s.col);
+    fp->SetSelectedPosition(s.pos, s.row, s.col);
+    module_ = s.module;
     fp->draw();
     // DO NOT CLEAR event
   } break;
@@ -132,6 +146,27 @@ void TSourceWindow::SetText(const std::vector<std::string> &text) {
 
 void TSourceWindow::SetText(const std::string &text) {
   fp->SetText(text);
+}
+
+void TSourceWindow::setState(ushort state, Boolean enable) {
+  TWindow::setState(state, enable);
+  switch (state) {
+  case sfActive:
+    if (hsb != 0)
+      hsb->setState(sfVisible, enable);
+    if (vsb != 0)
+      vsb->setState(sfVisible, enable);
+    if (indicator_) {
+      indicator_->setState(sfVisible, enable);
+    }
+    //updateCommands();
+    break;
+
+  case sfExposed:
+    //if (enable == True)
+    //  unlock();
+    break;
+  }
 }
 
 

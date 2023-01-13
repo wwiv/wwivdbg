@@ -24,6 +24,7 @@
 
 #include "tvision/tv.h"
 #include "tvcommon/datapane.h"
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -32,19 +33,27 @@ class TBreakpointsPane : public TDataPane {
 public:
   TBreakpointsPane(const TRect &bounds, TScrollBar *hsb, TScrollBar *vsb);
   ~TBreakpointsPane() = default;
+  virtual TMenuItem& initContextMenu(TPoint);
 };
 
+class DebugProtocol;
+
 class TBreakpointsWindow : public TWindow {
-  TBreakpointsPane *fp;
-  TScrollBar *hsb, *vsb;
 
 public:
-  TBreakpointsWindow(TRect r);
+  TBreakpointsWindow(TRect r, const std::shared_ptr<DebugProtocol>& debug);
   ~TBreakpointsWindow();
-
-  virtual void handleEvent(TEvent &event) override;
+  void handleBroadcastEvent(TEvent& event);
+  void handleCommandEvent(TEvent& event);
+  virtual void handleEvent(TEvent& event) override;
 
   void SetText(const std::vector<std::string> &text);
+  void UpdateBreakpointWindow();
+
+private:
+  TBreakpointsPane* fp;
+  TScrollBar* hsb, * vsb;
+  std::shared_ptr<DebugProtocol> debug_;
 };
 
 

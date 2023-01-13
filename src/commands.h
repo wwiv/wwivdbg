@@ -25,9 +25,6 @@ constexpr int cmViewBreakpoints = 103;
 constexpr int cmViewStack = 104;
 constexpr int cmViewSource = 105;
 constexpr int cmViewVars = 106;
-// Help
-constexpr int cmHelpAbout = 130;
-constexpr int cmHelpFoo = 131;
 
 // View
 constexpr int cmDebugRun = 110;
@@ -36,6 +33,13 @@ constexpr int cmDebugStepOver = 112;
 constexpr int cmDebugAttach = 113;
 constexpr int cmDebugDetach = 114;
 
+// Other debug
+constexpr int cmBreakpointAdd = 120;
+constexpr int cmBreakpointWindowRemove = 121;
+
+// Help
+constexpr int cmHelpAbout = 130;
+constexpr int cmHelpFoo = 131;
 
 // Other commands
 constexpr int cmFindWindow = 1000;
@@ -49,5 +53,8 @@ constexpr int cmDebugSourceChanged = 2003;
 constexpr int cmDebugStackChanged = 2004;
 constexpr int cmDebugBreakpointsChanged = 2005;
 constexpr int cmDebugStateChanged = 2006;
+constexpr int cmBreakpointsChanged = 2007;
+
+// Debug local commands
 
 #endif 

@@ -30,7 +30,9 @@
 #define Uses_TInputLine
 #define Uses_TKeys
 #define Uses_TLabel
+#define Uses_TMenu
 #define Uses_TMenuBar
+#define Uses_TMenuBox
 #define Uses_TMenuItem
 #define Uses_TObject
 #define Uses_TPoint
@@ -110,32 +112,47 @@ static std::string replace_tabs(const std::string& l) {
   return out;
 }
 
-void TDataPane::UpdateLocation(int pos, int row, int col) {
+void TDataPane::SetSelectedPosition(int pos, int row, int col) {
   pos_ = pos;
   selected_row_ = row;
-  curPos_.y = std::max(0, row - 1);
-  curPos_.x = col;
-  trackCursor();
+  setCurPos(col, std::max(0, row - 1));
   doUpdate();
 }
 
+void TDataPane::setCurPos(int x, int y) { 
+  curPos_.x = x; 
+  curPos_.y = y; 
+}
+
 void TDataPane::doUpdate() {
-  setCursor(curPos_.x - delta.x, curPos_.y - delta.y);
+  trackCursor();
   if (indicator_) {
     indicator_->setValue(curPos_, false);
   }
 }
 
 void TDataPane::trackCursor() {
+  setCursor(curPos_.x - delta.x, curPos_.y - delta.y);
   const auto x = std::max(curPos_.x - size.x + 1, min(delta.x, curPos_.x));
   const auto y = std::max(curPos_.y - size.y + 1, min(delta.y, curPos_.y));
   scrollTo(x, y);
 }
 
+TMenuItem& TDataPane::initContextMenu(TPoint) {
+  return *new TMenuItem("~C~opy", cmCopy, kbCtrlC, hcNoContext, "Ctrl-C");
+}
+
+int TDataPane::getLineForMousePoint(TPoint m) {
+  TPoint mouse = makeLocal(m);
+  mouse.x = max(0, min(mouse.x, size.x - 1));
+  mouse.y = max(0, min(mouse.y, size.y - 1));
+  return mouse.y + delta.y;
+}
+
 void TDataPane::handleEvent(TEvent& event) {
   TScroller::handleEvent(event);
   if (event.what & evMouseDown) {
-    if ((event.mouse.buttons & 0x01) && mouseInView(event.mouse.where)) {
+    if ((event.mouse.buttons & mbLeftButton) && mouseInView(event.mouse.where)) {
       do {
         auto p = makeLocal(event.mouse.where);
         setCurPos(p.x + delta.x, p.y + delta.y);
@@ -143,6 +160,15 @@ void TDataPane::handleEvent(TEvent& event) {
       } while (mouseEvent(event, evMouseMove));
       clearEvent(event);
       doUpdate();
+      return;
+    }
+    else if ((event.mouse.buttons & mbRightButton) && mouseInView(event.mouse.where)) {
+      auto p = makeLocal(event.mouse.where);
+      setCurPos(p.x + delta.x, p.y + delta.y);
+      doUpdate();
+      auto& menu = initContextMenu(event.mouse.where);
+      popupMenu(event.mouse.where, menu, owner);
+      clearEvent(event);
       return;
     }
   } else  if (event.what == evKeyboard) {
@@ -191,7 +217,6 @@ void TDataPane::handleEvent(TEvent& event) {
       break;
     }
     clearEvent(event);
-    trackCursor();
     doUpdate();
   }
 }
@@ -221,4 +246,8 @@ void TDataPane::draw() {
     }
     writeLine(0, i, size.x, 1, b);
   }
+}
+
+void TDataPane::setState(ushort aState, Boolean enable) {
+  TScroller::setState(aState, enable);
 }

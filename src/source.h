@@ -37,6 +37,7 @@ public:
               DebugProtocol* debug);
   ~TSourcePane() = default;
   virtual void handleEvent(TEvent& event) override;
+  virtual TMenuItem& initContextMenu(TPoint);
 
   void doUpdate();
   bool hilightCurrentLine();
@@ -54,12 +55,15 @@ public:
   TScrollBar* standardScrollBar(ushort aOptions);
   void SetText(const std::vector<std::string> &text);
   void SetText(const std::string &text);
+  virtual void setState(ushort aState, Boolean enable);
 
 private:
   TSourcePane* fp;
   TScrollBar* hsb, * vsb;
   std::shared_ptr<DebugProtocol> debug_;
   TIndicator* indicator_;
+  // current module loaded in the source window.
+  std::string module_;
 };
 
 

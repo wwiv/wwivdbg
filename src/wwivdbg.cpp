@@ -167,7 +167,7 @@ TBreakpointsWindow *TDebuggerApp::findBreakpointsWindow() {
   TRect r = deskTop->getExtent();
   // Move down 70%
   r.a.y = (r.b.y * .7);
-  auto *window = new TBreakpointsWindow(r);
+  auto *window = new TBreakpointsWindow(r, debug_);
   deskTop->insert(window);
   return window;
 }

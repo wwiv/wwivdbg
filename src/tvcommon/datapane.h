@@ -36,16 +36,30 @@ public:
   ~TDataPane() = default;
   virtual void draw() override;
   virtual void handleEvent(TEvent& event) override;
+  virtual void setState(ushort aState, Boolean enable);
+
+  // Override to populate a context menu.
+  virtual TMenuItem& initContextMenu(TPoint);
+  virtual int getLineForMousePoint(TPoint m);
 
   // Sets the text buffer either as lines or text.
   virtual void SetText(const std::string& text);
   virtual void SetText(const std::vector < std::string > & text);
-  virtual void doUpdate();
+
+  // Should the current line be hilighted
   virtual bool hilightCurrentLine() { return false; }
 
-  void UpdateLocation(int pos, int row, int col);
+  // Sets the current position and also selects the row.
+  void SetSelectedPosition(int pos, int row, int col);
+  // Move the cursor to match the current position.
   virtual void trackCursor();
-  void setCurPos(int x, int y) { curPos_.x = x; curPos_.y = y; }
+  // Update the scrolling, cursor, etc after a position update.
+  virtual void doUpdate();
+  // Update the internal database 
+  void setCurPos(int x, int y);
+  // Current line number, 1 based at origin.
+  int currentLine() const { return curPos_.y + 1; }
+  
 
 protected:
   std::vector<std::string> lines;

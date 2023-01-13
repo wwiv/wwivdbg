@@ -25,6 +25,7 @@
 #include <optional>
 #include <string>
 #include <thread>
+#include <vector>
 
 // copied from wwiv
 struct Variable {
@@ -45,6 +46,16 @@ public:
   int col{0};
 };
 
+// Local
+struct Breakpoint {
+  // remote ID
+  int remote_id;
+  int line{ -1 };
+  std::string module;
+  bool published{ false };
+};
+
+
 class TApplication;
 class TView;
 
@@ -56,6 +67,12 @@ class Request;
 class Server;
 }
 
+class Breakpoints {
+public:
+  void UpdateRemote(const nlohmann::json& b);
+  void NewLine(const std::string& module, int line);
+  std::vector<Breakpoint> breakpoints;
+};
 /**
  * @brief  Handles debug communication with scripte runner.
  * 
@@ -72,6 +89,7 @@ public:
   std::string source() { return source_;  }
   std::vector<Variable> vars() { return variables_; }
   std::vector<std::string> stack() { return stack_; }
+  Breakpoints& breakpoints() { return breakpoints_; }
   DebugState state() { return state_; }
   bool UpdateState(const std::string& state);
   bool UpdateState();
@@ -97,6 +115,7 @@ private:
   std::string source_;
   std::vector<Variable> variables_;
   std::vector<std::string> stack_;
+  Breakpoints breakpoints_;
   DebugState state_{};
 };
 
