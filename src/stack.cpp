@@ -59,6 +59,7 @@ TStackWindow::TStackWindow(const TRect &r, const std::shared_ptr<DebugProtocol>&
   auto inner = getClipRect();
   inner.grow(-1, -1);
 
+  palette = wpCyanWindow;
   hsb = standardScrollBar(sbHorizontal | sbHandleKeyboard);
   vsb = standardScrollBar(sbVertical | sbHandleKeyboard);
   insert(fp = new TStackInterior(inner, hsb, vsb));

@@ -58,6 +58,7 @@ TVarsWindow::TVarsWindow(TRect r, const std::shared_ptr<DebugProtocol>& debug)
     : TWindowInit(TWindow::initFrame),
       TWindow(r, "Vars", 0), debug_(debug) {
 
+  palette = wpCyanWindow;
   hsb = standardScrollBar(sbHorizontal | sbHandleKeyboard);
   vsb = standardScrollBar(sbVertical | sbHandleKeyboard);
   insert(fp = new TVarsPane(getClipRect().grow(-1, -1), hsb, vsb));

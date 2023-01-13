@@ -166,9 +166,11 @@ void TDataPane::handleEvent(TEvent& event) {
       auto p = makeLocal(event.mouse.where);
       setCurPos(p.x + delta.x, p.y + delta.y);
       doUpdate();
-      auto& menu = initContextMenu(event.mouse.where);
-      popupMenu(event.mouse.where, menu, owner);
-      clearEvent(event);
+      if (context_menu_enabled) {
+        auto& menu = initContextMenu(event.mouse.where);
+        popupMenu(event.mouse.where, menu, owner);
+        clearEvent(event);
+      }
       return;
     }
   } else  if (event.what == evKeyboard) {

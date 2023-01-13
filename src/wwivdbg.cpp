@@ -132,7 +132,7 @@ TSourceWindow* TDebuggerApp::findSourceWindow() {
   // cap botton at 70%
   r.b.y = r.b.y * .7;
   const auto title = fmt::format("Source: {}", debug_->state().initial_module);
-  auto *window = new TSourceWindow(r, title, debug_);
+  auto *window = new TSourceWindow(r, title, debug_->state().initial_module, debug_);
   deskTop->insert(window);
   return window;
 }

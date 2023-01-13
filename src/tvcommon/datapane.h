@@ -48,6 +48,7 @@ public:
 
   // Should the current line be hilighted
   virtual bool hilightCurrentLine() { return false; }
+  // Should this view offer a context menu?
 
   // Sets the current position and also selects the row.
   void SetSelectedPosition(int pos, int row, int col);
@@ -63,12 +64,15 @@ public:
 
 protected:
   std::vector<std::string> lines;
+  // Should this view offer a context menu?
+  bool context_menu_enabled{ false };
 
 private:
   int pos_{ 0 };
   int selected_row_{ -1 };
   TIndicator* indicator_{ nullptr };
   TPoint curPos_{ 0, 0 };
+
 };
 
 

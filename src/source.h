@@ -48,7 +48,9 @@ private:
 
 class TSourceWindow : public TWindow {
 public:
-  TSourceWindow(TRect r, const std::string& title, const std::shared_ptr<DebugProtocol>& debug);
+  TSourceWindow(TRect r, const std::string &title,
+                const std::string initial_module,
+                const std::shared_ptr<DebugProtocol> &debug);
   ~TSourceWindow();
 
   virtual void handleEvent(TEvent &event) override;
@@ -64,6 +66,7 @@ private:
   TIndicator* indicator_;
   // current module loaded in the source window.
   std::string module_;
+  std::string initial_module_;
 };
 
 

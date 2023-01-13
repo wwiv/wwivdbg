@@ -54,6 +54,7 @@
 TSourcePane::TSourcePane(const TRect &bounds, TScrollBar *hsb, TScrollBar *vsb,
                          TIndicator *indicator, DebugProtocol *debug)
     : TDataPane(bounds, hsb, vsb, indicator), debug_(debug) {
+  context_menu_enabled = true;
   normalCursor();
 }
 
@@ -92,9 +93,11 @@ TScrollBar* TSourceWindow::standardScrollBar(ushort aOptions)
 }
 
 
-TSourceWindow::TSourceWindow(TRect r, const std::string& title, const std::shared_ptr<DebugProtocol>& debug)
-    : TWindowInit(TWindow::initFrame),
-      TWindow(r, title, 0), debug_(debug) {
+TSourceWindow::TSourceWindow(TRect r, const std::string &title,
+                             const std::string initial_module,
+                             const std::shared_ptr<DebugProtocol> &debug)
+    : TWindowInit(TWindow::initFrame), TWindow(r, title, 0), debug_(debug),
+      module_(initial_module), initial_module_(initial_module) {
 
   hsb = standardScrollBar(sbHorizontal | sbHandleKeyboard);
   vsb = standardScrollBar(sbVertical | sbHandleKeyboard);

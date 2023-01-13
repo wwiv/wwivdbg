@@ -34,6 +34,7 @@ public:
   TBreakpointsPane(const TRect &bounds, TScrollBar *hsb, TScrollBar *vsb);
   ~TBreakpointsPane() = default;
   virtual TMenuItem& initContextMenu(TPoint);
+  bool hilightCurrentLine();
 };
 
 class DebugProtocol;

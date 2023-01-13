@@ -52,17 +52,24 @@
 
 
 TBreakpointsPane::TBreakpointsPane(const TRect &bounds, TScrollBar *hsb, TScrollBar *vsb)
-    : TDataPane(bounds, hsb, vsb, nullptr) {}
+    : TDataPane(bounds, hsb, vsb, nullptr) {
+  context_menu_enabled = true;
+}
 
 TMenuItem& TBreakpointsPane::initContextMenu(TPoint) {
-  return // *new TMenuItem("~C~opy", cmCopy, kbCtrlC, hcNoContext, "Ctrl-C") + newLine() +
-    *new TMenuItem("Remove ~B~reakpoint", cmBreakpointWindowRemove, kbNoKey);
+  return *new TMenuItem("Remove ~B~reakpoint", cmBreakpointWindowRemove, kbNoKey);
 }
+
+bool TBreakpointsPane::hilightCurrentLine() {
+  return focus();
+}
+
 
 TBreakpointsWindow::TBreakpointsWindow(TRect r, const std::shared_ptr<DebugProtocol>& debug)
     : TWindowInit(TWindow::initFrame),
       TWindow(r, "Breakpoints", 0), debug_(debug) {
 
+  palette = wpCyanWindow;
   hsb = standardScrollBar(sbHorizontal | sbHandleKeyboard);
   vsb = standardScrollBar(sbVertical | sbHandleKeyboard);
   insert(fp = new TBreakpointsPane(getClipRect().grow(-1, -1), hsb, vsb));
