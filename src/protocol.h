@@ -62,6 +62,7 @@ class TView;
 namespace httplib {
 class Client;
 class ContentReader;
+using Params = std::multimap<std::string, std::string>;
 class Response;
 class Request;
 class Server;
@@ -70,7 +71,7 @@ class Server;
 class Breakpoints {
 public:
   void UpdateRemote(const nlohmann::json& b);
-  void NewLine(const std::string& module, int line);
+  void NewLocalLine(const std::string& module, int line);
   std::vector<Breakpoint> breakpoints;
 };
 /**
@@ -95,14 +96,20 @@ public:
   bool UpdateState();
   bool Attach();
   bool Detach();
+  bool CreateBreakpoint(const std::string& module, const std::string& typ, int line);
+  bool DeleteBreakpoint(int id);
   bool StepOver();
   bool TraceIn();
   bool attached() const;
   void set_attached(bool a);
+  void NewLineBreakpoint(const std::string& module, int line);
+  void UpdateLocalBreakpoints();
 
 private:
   std::optional<std::string> Get(const std::string &part);
+  std::optional<std::string> Delete(const std::string &part);
   std::optional<std::string> Post(const std::string &part);
+  std::optional<std::string> Post(const std::string &part, const httplib::Params& params);
 
   std::unique_ptr<httplib::Client> cli_;
   mutable std::mutex mu_;

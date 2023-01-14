@@ -131,6 +131,12 @@ void TBreakpointsWindow::handleCommandEvent(TEvent& event) {
     if (b.empty()) {
       return;
     }
+    const auto remote_id = b.at(index).remote_id;
+    if (!debug_->DeleteBreakpoint(remote_id)) {
+      messageBox("Failed to delete breakpoint on the server", mfOKButton | mfError);
+      clearEvent(event);
+      return;
+    }
     auto it = std::begin(b);
     std::advance(it, index);
     if (it != std::end(b)) {

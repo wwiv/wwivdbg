@@ -75,9 +75,8 @@ void TDebuggerApp::getEvent(TEvent& event) {
 
   TApplication::getEvent(event);
   if (event.what == evBroadcast && event.message.command == cmDebugAttached) {
-    //OOOO
 #ifdef _WIN32
-    // OutputDebugString("cmDebugAttached");
+    OutputDebugString("cmDebugAttached");
 #endif
   }
 }
@@ -131,7 +130,7 @@ TSourceWindow* TDebuggerApp::findSourceWindow() {
   TRect r = deskTop->getExtent();
   // cap botton at 70%
   r.b.y = r.b.y * .7;
-  const auto title = fmt::format("Source: {}", debug_->state().initial_module);
+  const auto title = fmt::format("Module: '{}'", debug_->state().initial_module);
   auto *window = new TSourceWindow(r, title, debug_->state().initial_module, debug_);
   deskTop->insert(window);
   return window;
@@ -225,6 +224,7 @@ void TDebuggerApp::handleBroadcast(TEvent &event) {
     // Ensure the source window is open
     findSourceWindow();
     debug_->UpdateSource();
+    debug_->UpdateLocalBreakpoints();
 
     enableCommands(attached_cmds_);
     disableCommands(detached_cmds_);

@@ -123,7 +123,7 @@ void TSourceWindow::handleEvent(TEvent &event) {
   } break;
   case cmBreakpointAdd: {
     const auto line = fp->currentLine();
-    debug_->breakpoints().NewLine(module_, line);
+    debug_->CreateBreakpoint(module_, "line", line);
     clearEvent(event);
     message(TProgram::deskTop, evBroadcast, cmBreakpointsChanged, 0);
     return;
@@ -135,7 +135,9 @@ void TSourceWindow::handleEvent(TEvent &event) {
   case cmBroadcastDebugStateChanged: {
     const auto &s = debug_->state();
     fp->SetSelectedPosition(s.pos, s.row, s.col);
-    module_ = s.module;
+    if (!s.module.empty()) {
+      module_ = s.module;
+    }
     fp->draw();
     // DO NOT CLEAR event
   } break;

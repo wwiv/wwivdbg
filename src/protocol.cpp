@@ -42,7 +42,6 @@ DebugProtocol::~DebugProtocol() {
 bool DebugProtocol::UpdateSource() {
   if (auto source = Get("source")) {
     source_ = source.value();
-    // Source does not go into the queue
     message(app_, evBroadcast, cmDebugSourceChanged, 0);
     return true;
   }
@@ -74,7 +73,6 @@ bool DebugProtocol::UpdateState(const std::string& s) {
   const auto& jbreakpoints = j["breakpoints"];
   for (const auto& v : jbreakpoints) {
     breakpoints_.UpdateRemote(v);
-    variables_.push_back(v.get<Variable>());
   }
 
   // State does not go into the queue
@@ -127,6 +125,34 @@ bool DebugProtocol::Detach() {
   return false;
 }
 
+bool DebugProtocol::CreateBreakpoint(const std::string& module, const std::string& typ, int line) {
+  if (!attached()) {
+    return false;
+  }
+
+  httplib::Params params;
+  params.emplace("module", module);
+  params.emplace("typ", typ);
+  params.emplace("line", std::to_string(line));
+
+  if (auto body = Post("breakpoint", params)) {
+    json j = json::parse(body.value());
+    breakpoints_.UpdateRemote(j);
+    return true;
+  }
+  return false;
+}
+
+bool DebugProtocol::DeleteBreakpoint(int id) {
+  if (!attached()) {
+    return false;
+  }
+  if (auto state = Delete(fmt::format("breakpoint/{}", id))) {
+    return true;
+  }
+  return false;
+}
+
 bool DebugProtocol::StepOver() {
   if (!attached()) {
     return false;
@@ -148,6 +174,18 @@ bool DebugProtocol::TraceIn() {
   return UpdateState();
 }
 
+std::optional<std::string> DebugProtocol::Delete(const std::string& part) {
+  const auto uri = fmt::format("/debug/v1/{}", part);
+  if (auto res = cli_->Delete(uri)) {
+    if (res->status != 200) {
+      // TODO(rushfan): Log error.
+      return std::nullopt;
+    }
+    return res->body;
+  }
+  return std::nullopt;
+}
+
 std::optional<std::string> DebugProtocol::Get(const std::string& part) {
   const auto uri = fmt::format("/debug/v1/{}", part);
   if (auto res = cli_->Get(uri)) {
@@ -160,7 +198,20 @@ std::optional<std::string> DebugProtocol::Get(const std::string& part) {
   return std::nullopt;
 }
 
-std::optional<std::string> DebugProtocol::Post(const std::string &part) {
+std::optional<std::string> DebugProtocol::Post(const std::string &part,
+                                               const httplib::Params &params) {
+  const auto uri = fmt::format("/debug/v1/{}", part);
+  if (auto res = cli_->Post(uri, params)) {
+    if (res->status != 200) {
+      // TODO(rushfan): Log error.
+      return std::nullopt;
+    }
+    return res->body;
+  }
+  return std::nullopt;
+}
+
+std::optional<std::string> DebugProtocol::Post(const std::string& part) {
   const auto uri = fmt::format("/debug/v1/{}", part);
   if (auto res = cli_->Post(uri)) {
     if (res->status != 200) {
@@ -171,7 +222,6 @@ std::optional<std::string> DebugProtocol::Post(const std::string &part) {
   }
   return std::nullopt;
 }
-
 
 // JSON
 
@@ -211,21 +261,22 @@ void Breakpoints::UpdateRemote(const nlohmann::json& b) {
   std::string typ = b["typ"];
   int64_t remote_id = b["id"];
 
-  std::vector<Breakpoint> toadd;
-  for (auto& lb : breakpoints) {
+  for (auto it = breakpoints.begin(); it != breakpoints.end(); ++it) {
+    auto& lb = *it;
     if (lb.remote_id == remote_id) {
       // Have one already on the server
       return;
     }
     else if ((lb.module.empty() || lb.module == module) && lb.line == line && typ == "line") {
-      // Matching one, not on server.
-      // TODO(rushfan): Push this one to the server and update ID
-      return;
+      // Matching one on the server without the id.
+      // Remove it and add it at the bottom.
+      it = breakpoints.erase(it);
+      break;
     }
   }
 
   // We have a new one, add it.
-  Breakpoint newb;
+  Breakpoint newb{};
   newb.module =  module;
   newb.line = line;
   newb.published = true;
@@ -233,7 +284,7 @@ void Breakpoints::UpdateRemote(const nlohmann::json& b) {
   breakpoints.emplace_back(newb);
 }
 
-void Breakpoints::NewLine(const std::string& module, int line) {
+void Breakpoints::NewLocalLine(const std::string& module, int line) {
   for (auto& lb : breakpoints) {
     if ((lb.module.empty() || lb.module == module) && lb.line == line) {
       // Matching one, not on server.
@@ -248,3 +299,29 @@ void Breakpoints::NewLine(const std::string& module, int line) {
   breakpoints.emplace_back(newb);
 
 }
+
+void DebugProtocol::NewLineBreakpoint(const std::string& module, int line) {
+  if (!attached_) {
+    breakpoints_.NewLocalLine(module, line);
+    return;
+  }
+
+  CreateBreakpoint(module, "line", line);
+  // CreateBreakpoint does not broadcast
+  message(app_, evBroadcast, cmBroadcastDebugStateChanged, 0);
+}
+
+void DebugProtocol::UpdateLocalBreakpoints() {
+  std::vector<Breakpoint> toadd;
+  for (auto& lb : breakpoints_.breakpoints) {
+    if (!lb.published) {
+      toadd.push_back(lb);
+    }
+  }
+  for (const auto& b : toadd) {
+    CreateBreakpoint(b.module, "line", b.line);
+  }
+  // Once complete, broadcase the changes to everyone.
+  message(app_, evBroadcast, cmBroadcastDebugStateChanged, 0);
+}
+
