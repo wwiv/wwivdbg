@@ -24,18 +24,18 @@
 
 #include "tvision/tv.h"
 #include "tvcommon/datapane.h"
+#include "tvcommon/listwindow.h"
 #include <memory>
 #include <string>
 #include <vector>
 
-class TBreakpointsPane2 : public TListViewer {
+class TBreakpointsPane2 : public TWCListViewer {
 
 public:
   TBreakpointsPane2(const TRect &bounds, TScrollBar *hsb, TScrollBar *vsb);
   ~TBreakpointsPane2() = default;
   virtual TMenuItem& initContextMenu(TPoint);
   bool hilightCurrentLine();
-  virtual void getText(char* dest, short item, short maxLen);
   virtual TPalette& getPalette() const;
   TColorAttr mapColor(uchar index) noexcept;
 
@@ -43,7 +43,7 @@ public:
 
 class DebugProtocol;
 
-class TBreakpointsWindow2 : public TWindow {
+class TBreakpointsWindow2 : public TWCListWindow {
 
 public:
   TBreakpointsWindow2(TRect r, const std::shared_ptr<DebugProtocol>& debug);
@@ -58,7 +58,7 @@ public:
   void UpdateBreakpointWindow();
 
 private:
-  TView* fp;
+  TBreakpointsPane2* fp;
   TScrollBar* hsb, * vsb;
   std::shared_ptr<DebugProtocol> debug_;
 };

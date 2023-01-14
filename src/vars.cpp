@@ -80,7 +80,7 @@ void TVarsWindow::handleEvent(TEvent &event) {
       return;
     }
     break;
-  case cmDebugStateChanged: {
+  case cmBroadcastDebugStateChanged: {
     SetText(debug_->vars());
     // DO NOT CLEAR clearEvent(event);
   } break;

@@ -80,7 +80,7 @@ void TStackWindow::handleEvent(TEvent& event) {
       clearEvent(event);
       return;
     }
-  case cmDebugStateChanged: {
+  case cmBroadcastDebugStateChanged: {
     UpdateStack(debug_->stack());
     // DO NOT CLEAR clearEvent(event);
   } break;

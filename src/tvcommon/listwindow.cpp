@@ -48,17 +48,13 @@
 #include <string>
 
 
-TWCListViewer::TWCListViewer(const TRect &bounds, TScrollBar *hsb, TScrollBar *vsb)
-    : TListViewer(bounds, 1, hsb, vsb) {
+TWCListViewer::TWCListViewer(const TRect &bounds, ushort numColumns, TScrollBar *hsb, TScrollBar *vsb)
+    : TListViewer(bounds, numColumns, hsb, vsb) {
   growMode = gfGrowHiX | gfGrowHiY;
 }
 
-#define cpWcListViewer "\x06\x07\x06\x07\x06\x07"
-
 TPalette& TWCListViewer::getPalette() const {
  return TListViewer::getPalette();
-  static TPalette palette(cpWcListViewer, sizeof(cpWcListViewer) - 1);
-  return palette;
 }
 
 TColorAttr TWCListViewer::mapColor(uchar index) noexcept {
@@ -66,19 +62,50 @@ TColorAttr TWCListViewer::mapColor(uchar index) noexcept {
 }
 
 TMenuItem& TWCListViewer::initContextMenu(TPoint) {
-  return *new TMenuItem("Remove ~B~reakpoint", 100, kbNoKey);
+  return *new TMenuItem("<empty>", 0, kbNoKey);
+}
+
+void TWCListViewer::setList(const std::vector<std::string>& l) {
+  list = l;
+  setRange(static_cast<short>(list.size()));
 }
 
 void TWCListViewer::getText(char* dest, short item, short maxLen) {
-  strcpy(dest, "Test");
+  if (item >= list.size()) {
+    strcpy(dest, "");
+  }
+  else {
+    strncpy(dest, list.at(item).c_str(), maxLen);
+  }
 }
 
+bool TWCListViewer::isContextMenuTrigger(TEvent& event) {
+  return ((event.what & evMouseDown) && (event.mouse.buttons & mbRightButton) && mouseInView(event.mouse.where));
+
+}
+void TWCListViewer::handleEvent(TEvent &event) {
+  // Since TListViewer will clear the mouse events, send a copy of the
+  // event for it to update the selection, etc.  Then check if it's
+  // an appropriate context menu trigger.
+  TEvent e{ event };
+  TListViewer::handleEvent(e);
+  if (!hasContextMenu || list.empty()) {
+    return;
+  }
+  if (!isContextMenuTrigger(event)) {
+    return;
+  }
+  auto &menu = initContextMenu(event.mouse.where);
+  popupMenu(event.mouse.where, menu, owner);
+  clearEvent(event);
+}
 
 TWCListWindow::TWCListWindow(TRect r, TStringView aTitle, short windowNumber)
     : TWindowInit(&TWindow::initFrame),
       TWindow(r, aTitle, windowNumber) {
+
+  // NOTE(rushfan): This only works with cyan so far, need to figure the palette out
   palette = wpCyanWindow;
-  insert(fp = new TWCListViewer(getClipRect().grow(-1, -1), nullptr, nullptr));
 }
 
 TWCListWindow ::~TWCListWindow() = default;
@@ -89,6 +116,9 @@ void TWCListWindow::handleEvent(TEvent& event) {
 }
 
 
+// NOTE(rushfan): These are not entirely right yet.
+// This only works with cyan so far, need to figure the palette out
+
 // Need to add in more palette entries since this is what we have from the list viewer.
 // #define cpListViewer "\x1A\x1A\x1B\x1C\x1D"
 // The 2nd line is from cpXXXXXDialog in dialogs.h
@@ -96,9 +126,9 @@ void TWCListWindow::handleEvent(TEvent& event) {
 #define cpBlueBreakpointWindow cpBlueWindow "\x00\x00\x00\x00\x00\x00\x00\x00" \
     "\x30\x31\x32\x33\x34\x35\x36\x37\x38\x39\x3A\x3B\x3C\x3D\x3E\x3F"
 #define cpCyanBreakpointWindow cpCyanWindow "\x00\x00\x00\x00\x00\x00\x00\x00" \
-                               "\x50\x51\x52\x53\x54\x55\x56\x57\x58\x59\x5a\x5b\x5c\x5d\x5e\x5f"
+    "\x50\x51\x52\x53\x54\x55\x56\x57\x58\x59\x5a\x5b\x5c\x5d\x5e\x5f"
 #define cpGrayBreakpointWindow cpGrayWindow "\x00\x00\x00\x00\x00\x00\x00\x00" \
-                               "\x70\x71\x72\x73\x74\x75\x76\x77\x78\x79\x7a\x7b\x7c\x7d\x7e\x7f"
+    "\x70\x71\x72\x73\x74\x75\x76\x77\x78\x79\x7a\x7b\x7c\x7d\x7e\x7f"
 
 TPalette& TWCListWindow::getPalette() const {
   static TPalette blue(cpBlueBreakpointWindow, sizeof(cpBlueBreakpointWindow) - 1);
@@ -112,7 +142,6 @@ TPalette& TWCListWindow::getPalette() const {
   return *(palettes[palette]);
 
 }
-
 
 TColorAttr TWCListWindow::mapColor(uchar index) noexcept {
   return TWindow::mapColor(index);

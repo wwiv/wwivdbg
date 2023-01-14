@@ -88,7 +88,7 @@ void TBreakpointsWindow::handleBroadcastEvent(TEvent& event) {
   case cmBreakpointsChanged:
     UpdateBreakpointWindow();
     break;
-  case cmDebugStateChanged: {
+  case cmBroadcastDebugStateChanged: {
     UpdateBreakpointWindow();
     // DO NOT CLEAR clearEvent(event);
   } break;

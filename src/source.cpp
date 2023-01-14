@@ -132,7 +132,7 @@ void TSourceWindow::handleEvent(TEvent &event) {
     fp->SetText(debug_->source());
     clearEvent(event);
     return;
-  case cmDebugStateChanged: {
+  case cmBroadcastDebugStateChanged: {
     const auto &s = debug_->state();
     fp->SetSelectedPosition(s.pos, s.row, s.col);
     module_ = s.module;
@@ -153,6 +153,11 @@ void TSourceWindow::SetText(const std::string &text) {
 
 void TSourceWindow::setState(ushort state, Boolean enable) {
   TWindow::setState(state, enable);
+  if (frame == nullptr) {
+    // Was getting a random crash on closing the window because of getting
+    // called here to make these not visible while shutting down the view.
+    return;
+  }
   switch (state) {
   case sfActive:
     if (hsb != 0)

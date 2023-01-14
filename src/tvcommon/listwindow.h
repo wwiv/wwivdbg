@@ -32,12 +32,21 @@
 class TWCListViewer : public TListViewer {
 
 public:
-  TWCListViewer(const TRect &bounds, TScrollBar *hsb, TScrollBar *vsb);
+  TWCListViewer(const TRect &bounds, ushort numColumns, TScrollBar *hsb, TScrollBar *vsb);
   ~TWCListViewer() = default;
   virtual TMenuItem& initContextMenu(TPoint);
-  virtual void getText(char* dest, short item, short maxLen);
-  virtual TPalette& getPalette() const;
-  TColorAttr mapColor(uchar index) noexcept;
+  virtual void handleEvent(TEvent&) override;
+  virtual void getText(char* dest, short item, short maxLen) override;
+  virtual TPalette& getPalette() const override;
+  TColorAttr mapColor(uchar index) noexcept override;
+
+  virtual void setList(const std::vector<std::string>& list);
+
+protected:
+  bool isContextMenuTrigger(TEvent& event);
+
+  std::vector<std::string> list;
+  bool hasContextMenu{ false };
 
 };
 
@@ -46,16 +55,11 @@ class DebugProtocol;
 class TWCListWindow : public TWindow {
 
 public:
-  TWCListWindow(TRect r, TStringView aTitle, short aNumber);
+  TWCListWindow(TRect bounds, TStringView windowTitle, short windowNumber);
   ~TWCListWindow();
   virtual void handleEvent(TEvent& event) override;
-  virtual TPalette& getPalette() const;
-  TColorAttr mapColor(uchar index) noexcept;
-
-private:
-  TView* fp;
-  TScrollBar* hsb, * vsb;
-  std::shared_ptr<DebugProtocol> debug_;
+  virtual TPalette& getPalette() const override;
+  TColorAttr mapColor(uchar index) noexcept override;
 };
 
 

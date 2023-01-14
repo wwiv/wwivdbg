@@ -52,7 +52,7 @@ constexpr int cmDebugDetached = 2002;
 constexpr int cmDebugSourceChanged = 2003;
 constexpr int cmDebugStackChanged = 2004;
 constexpr int cmDebugBreakpointsChanged = 2005;
-constexpr int cmDebugStateChanged = 2006;
+constexpr int cmBroadcastDebugStateChanged = 2006;
 constexpr int cmBreakpointsChanged = 2007;
 
 // Debug local commands

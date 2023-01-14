@@ -78,7 +78,7 @@ bool DebugProtocol::UpdateState(const std::string& s) {
   }
 
   // State does not go into the queue
-  message(app_, evBroadcast, cmDebugStateChanged, 0);
+  message(app_, evBroadcast, cmBroadcastDebugStateChanged, 0);
   return true;
 }
 

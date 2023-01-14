@@ -53,12 +53,10 @@
 
 
 TBreakpointsPane2::TBreakpointsPane2(const TRect &bounds, TScrollBar *hsb, TScrollBar *vsb)
-    : TListViewer(bounds, 1, hsb, vsb) {
-  range = 2;
+    : TWCListViewer(bounds, 1, hsb, vsb) {
+  hasContextMenu = true;
 }
 
-//#define cpDialogX "\x20\x21\x22\x23\x24\x25\x26\x27\x28\x29\x2A\x2B\x2C\x2D\x2E\x2F"
-#define cpDialogX "\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F"
 #define cpScroller "\x06\x07\x06\x07\x06\x07"
 
 TPalette& TBreakpointsPane2::getPalette() const {
@@ -95,20 +93,11 @@ bool TBreakpointsPane2::hilightCurrentLine() {
   return focus();
 }
 
-void TBreakpointsPane2::getText(char* dest, short item, short maxLen) {
-  strcpy(dest, "Test");
-}
-
-
 TBreakpointsWindow2::TBreakpointsWindow2(TRect r, const std::shared_ptr<DebugProtocol>& debug)
     : TWindowInit(&TWindow::initFrame),
-      TWindow(r, "Breakpoints", 0), debug_(debug) {
+      TWCListWindow(r, "Breakpoints", 0), debug_(debug) {
 
-  palette = wpCyanWindow;
-  fp = new TBreakpointsPane2(getClipRect().grow(-1, -1), nullptr, nullptr);
-  fp->growMode = gfGrowHiX | gfGrowHiY;
-  insert(fp);
-  errorAttr = 0xFF;
+  insert(fp = new TBreakpointsPane2(getClipRect().grow(-1, -1), nullptr, nullptr));
 }
 
 TBreakpointsWindow2 ::~TBreakpointsWindow2() = default;
@@ -122,8 +111,9 @@ void TBreakpointsWindow2::handleBroadcastEvent(TEvent& event) {
     break;
   case cmBreakpointsChanged:
     UpdateBreakpointWindow();
+    clearEvent(event);
     break;
-  case cmDebugStateChanged: {
+  case cmBroadcastDebugStateChanged: {
     UpdateBreakpointWindow();
     // DO NOT CLEAR clearEvent(event);
   } break;
@@ -136,7 +126,7 @@ void TBreakpointsWindow2::handleCommandEvent(TEvent& event) {
   switch (event.message.command) {
   case cmBreakpointWindowRemove: { // command
     // currentLine is 1 based, we need 0 based.
-    const auto index = 0; // HACK std::max<int>(0, fp->currentLine() - 1);
+    const auto index = fp->focused;
     auto& b = debug_->breakpoints().breakpoints;
     if (b.empty()) {
       return;
@@ -164,7 +154,7 @@ void TBreakpointsWindow2::handleEvent(TEvent& event) {
 }
 
 void TBreakpointsWindow2::SetText(const std::vector<std::string> &text) {
-//  fp->SetText(text);
+  fp->setList(text);
 }
 
 void TBreakpointsWindow2::UpdateBreakpointWindow() {
@@ -174,7 +164,7 @@ void TBreakpointsWindow2::UpdateBreakpointWindow() {
       fmt::format("{:<15} | {:<6} | {:04d}", b.module, "line", b.line);
     lines.emplace_back(l);
   }
-//  fp->SetText(lines);
+  fp->setList(lines);
 }
 
 // Need to add in more palette entries since this is what we have from the list viewer.
