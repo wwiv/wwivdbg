@@ -28,6 +28,7 @@
 #define Uses_TInputLine
 #define Uses_TKeys
 #define Uses_TLabel
+#define Uses_TListViewer
 #define Uses_TMenuBar
 #define Uses_TMenuItem
 #define Uses_TObject
@@ -52,8 +53,36 @@
 
 
 TBreakpointsPane::TBreakpointsPane(const TRect &bounds, TScrollBar *hsb, TScrollBar *vsb)
-    : TDataPane(bounds, hsb, vsb, nullptr) {
-  context_menu_enabled = true;
+    : TWCListViewer(bounds, 1, hsb, vsb) {
+  hasContextMenu = true;
+}
+
+#define cpScroller "\x06\x07\x06\x07\x06\x07"
+
+TPalette& TBreakpointsPane::getPalette() const {
+ return TListViewer::getPalette();
+  static TPalette palette(cpScroller, sizeof(cpScroller) - 1);
+  return palette;
+}
+
+TColorAttr TBreakpointsPane::mapColor(uchar index) noexcept {
+  TPalette& p = getPalette();
+  TColorAttr color;
+  uchar f = p[0];
+  if (p[0] != 0)
+  {
+    if (0 < index && index <= p[0])
+      color = p[index];
+    else
+      return errorAttr;
+  }
+  else
+    color = index;
+  if (color == 0)
+    return errorAttr;
+  if (owner)
+    return owner->mapColor(color);
+  return color;
 }
 
 TMenuItem& TBreakpointsPane::initContextMenu(TPoint) {
@@ -64,16 +93,11 @@ bool TBreakpointsPane::hilightCurrentLine() {
   return focus();
 }
 
-
 TBreakpointsWindow::TBreakpointsWindow(TRect r, const std::shared_ptr<DebugProtocol>& debug)
-    : TWindowInit(TWindow::initFrame),
-      TWindow(r, "Breakpoints", 0), debug_(debug) {
+    : TWindowInit(&TWindow::initFrame),
+      TWCListWindow(r, "Breakpoints", 0), debug_(debug) {
 
-  palette = wpCyanWindow;
-  hsb = standardScrollBar(sbHorizontal | sbHandleKeyboard);
-  vsb = standardScrollBar(sbVertical | sbHandleKeyboard);
-  insert(fp = new TBreakpointsPane(getClipRect().grow(-1, -1), hsb, vsb));
-  UpdateBreakpointWindow();
+  insert(fp = new TBreakpointsPane(getClipRect().grow(-1, -1), nullptr, nullptr));
 }
 
 TBreakpointsWindow ::~TBreakpointsWindow() = default;
@@ -87,6 +111,7 @@ void TBreakpointsWindow::handleBroadcastEvent(TEvent& event) {
     break;
   case cmBreakpointsChanged:
     UpdateBreakpointWindow();
+    clearEvent(event);
     break;
   case cmBroadcastDebugStateChanged: {
     UpdateBreakpointWindow();
@@ -101,7 +126,7 @@ void TBreakpointsWindow::handleCommandEvent(TEvent& event) {
   switch (event.message.command) {
   case cmBreakpointWindowRemove: { // command
     // currentLine is 1 based, we need 0 based.
-    const auto index = std::max<int>(0, fp->currentLine() - 1);
+    const auto index = fp->focused;
     auto& b = debug_->breakpoints().breakpoints;
     if (b.empty()) {
       return;
@@ -129,7 +154,7 @@ void TBreakpointsWindow::handleEvent(TEvent& event) {
 }
 
 void TBreakpointsWindow::SetText(const std::vector<std::string> &text) {
-  fp->SetText(text);
+  fp->setList(text);
 }
 
 void TBreakpointsWindow::UpdateBreakpointWindow() {
@@ -139,5 +164,34 @@ void TBreakpointsWindow::UpdateBreakpointWindow() {
       fmt::format("{:<15} | {:<6} | {:04d}", b.module, "line", b.line);
     lines.emplace_back(l);
   }
-  fp->SetText(lines);
+  fp->setList(lines);
+}
+
+// Need to add in more palette entries since this is what we have from the list viewer.
+// #define cpListViewer "\x1A\x1A\x1B\x1C\x1D"
+// The 2nd line is from cpXXXXXDialog in dialogs.h
+
+#define cpBlueBreakpointWindow cpBlueWindow "\x00\x00\x00\x00\x00\x00\x00\x00" \
+    "\x30\x31\x32\x33\x34\x35\x36\x37\x38\x39\x3A\x3B\x3C\x3D\x3E\x3F"
+#define cpCyanBreakpointWindow cpCyanWindow "\x00\x00\x00\x00\x00\x00\x00\x00" \
+                               "\x50\x51\x52\x53\x54\x55\x56\x57\x58\x59\x5a\x5b\x5c\x5d\x5e\x5f"
+#define cpGrayBreakpointWindow cpGrayWindow "\x00\x00\x00\x00\x00\x00\x00\x00" \
+                               "\x70\x71\x72\x73\x74\x75\x76\x77\x78\x79\x7a\x7b\x7c\x7d\x7e\x7f"
+
+TPalette& TBreakpointsWindow::getPalette() const {
+  static TPalette blue(cpBlueBreakpointWindow, sizeof(cpBlueBreakpointWindow) - 1);
+  static TPalette cyan(cpCyanBreakpointWindow, sizeof(cpCyanBreakpointWindow) - 1);
+  static TPalette gray(cpGrayBreakpointWindow, sizeof(cpGrayBreakpointWindow) - 1);
+  static TPalette* palettes[] ={
+    &blue,
+    &cyan,
+    &gray
+  };
+  return *(palettes[palette]);
+
+}
+
+
+TColorAttr TBreakpointsWindow::mapColor(uchar index) noexcept {
+  return TWindow::mapColor(index);
 }

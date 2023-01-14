@@ -29,7 +29,7 @@ class TEditWindow;
 class TDialog;
 
 class TBreakpointsWindow;
-class TBreakpointsWindow2;
+class TBreakpointsWindow;
 class TSourceWindow;
 class TStackWindow;
 
@@ -56,7 +56,7 @@ private:
   TStackWindow* findStackWindow();
   TSourceWindow* findSourceWindow();
   TVarsWindow* findVarsWindow();
-  TBreakpointsWindow2* findBreakpointsWindow();
+  TBreakpointsWindow* findBreakpointsWindow();
   void fileOpen();
   void fileNew();
   void changeDir();

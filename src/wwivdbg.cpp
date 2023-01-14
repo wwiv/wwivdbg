@@ -44,7 +44,6 @@
 #include "tvision/tv.h"
 #include "fmt/format.h"
 #include "breakpoints.h"
-#include "breakpoints2.h"
 #include "commands.h"
 #include "editor.h"
 #include "menu.h"
@@ -155,11 +154,11 @@ TVarsWindow* TDebuggerApp::findVarsWindow() {
   return window;
 }
 
-TBreakpointsWindow2 *TDebuggerApp::findBreakpointsWindow() {
+TBreakpointsWindow *TDebuggerApp::findBreakpointsWindow() {
   ptrdiff_t cmd = cmViewBreakpoints;
   if (auto *o = message(deskTop, evBroadcast, cmFindWindow,
                         reinterpret_cast<void *>(cmd))) {
-    TBreakpointsWindow2 *window = reinterpret_cast<TBreakpointsWindow2 *>(o);
+    TBreakpointsWindow *window = reinterpret_cast<TBreakpointsWindow *>(o);
     window->select();
     return window;
   }
@@ -168,7 +167,7 @@ TBreakpointsWindow2 *TDebuggerApp::findBreakpointsWindow() {
   TRect r = deskTop->getExtent();
   // Move down 70%
   r.a.y = (r.b.y * .7);
-  auto *window = new TBreakpointsWindow2(r, debug_);
+  auto *window = new TBreakpointsWindow(r, debug_);
   deskTop->insert(window);
   return window;
 }

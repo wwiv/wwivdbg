@@ -26,7 +26,6 @@ target_link_libraries(tvcommon PRIVATE
 
 add_executable(wwivdbg 
   "src/breakpoints.cpp" 
-  "src/breakpoints2.cpp" 
   "src/editor.cpp"
   "src/menu.cpp"
   "src/protocol.cpp" 

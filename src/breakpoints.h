@@ -17,29 +17,33 @@
 #ifndef INCLUDED_WWIVDBG_BREAKPOINTS_H
 #define INCLUDED_WWIVDBG_BREAKPOINTS_H
 
-#define Uses_TScrollBar
+#define Uses_TListViewer
 #define Uses_TRect
 #define Uses_TScroller
 #define Uses_TScrollBar
 
 #include "tvision/tv.h"
 #include "tvcommon/datapane.h"
+#include "tvcommon/listwindow.h"
 #include <memory>
 #include <string>
 #include <vector>
 
-class TBreakpointsPane : public TDataPane {
+class TBreakpointsPane : public TWCListViewer {
 
 public:
   TBreakpointsPane(const TRect &bounds, TScrollBar *hsb, TScrollBar *vsb);
   ~TBreakpointsPane() = default;
   virtual TMenuItem& initContextMenu(TPoint);
   bool hilightCurrentLine();
+  virtual TPalette& getPalette() const;
+  TColorAttr mapColor(uchar index) noexcept;
+
 };
 
 class DebugProtocol;
 
-class TBreakpointsWindow : public TWindow {
+class TBreakpointsWindow : public TWCListWindow {
 
 public:
   TBreakpointsWindow(TRect r, const std::shared_ptr<DebugProtocol>& debug);
@@ -47,6 +51,8 @@ public:
   void handleBroadcastEvent(TEvent& event);
   void handleCommandEvent(TEvent& event);
   virtual void handleEvent(TEvent& event) override;
+  virtual TPalette& getPalette() const;
+  TColorAttr mapColor(uchar index) noexcept;
 
   void SetText(const std::vector<std::string> &text);
   void UpdateBreakpointWindow();
