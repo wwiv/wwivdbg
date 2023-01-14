@@ -16,6 +16,7 @@ find_package(httplib CONFIG REQUIRED)
 
 add_library(tvcommon 
   "src/tvcommon/datapane.cpp"
+  "src/tvcommon/listwindow.cpp"
 )
 target_compile_features(tvcommon PRIVATE cxx_std_17)
 target_link_libraries(tvcommon PRIVATE 
@@ -25,6 +26,7 @@ target_link_libraries(tvcommon PRIVATE
 
 add_executable(wwivdbg 
   "src/breakpoints.cpp" 
+  "src/breakpoints2.cpp" 
   "src/editor.cpp"
   "src/menu.cpp"
   "src/protocol.cpp" 
@@ -33,8 +35,7 @@ add_executable(wwivdbg
   "src/strings.cpp" 
   "src/utils.cpp"
   "src/vars.cpp" 
-  "src/wwivdbg.cpp" 
- "src/tvcommon/datapane.h")
+  "src/wwivdbg.cpp")
 target_compile_features(wwivdbg PRIVATE cxx_std_17)
 
 target_link_libraries(wwivdbg PRIVATE 
