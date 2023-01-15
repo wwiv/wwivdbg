@@ -56,6 +56,7 @@ public:
 
   void SetText(const std::vector<std::string> &text);
   void UpdateBreakpointWindow();
+  void showInfoDialog(int index);
 
 private:
   TBreakpointsPane* fp;

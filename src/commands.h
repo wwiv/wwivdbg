@@ -36,6 +36,7 @@ constexpr int cmDebugDetach = 114;
 // Other debug
 constexpr int cmBreakpointAdd = 120;
 constexpr int cmBreakpointWindowRemove = 121;
+constexpr int cmBreakpointWindowProperties = 122;
 
 // Help
 constexpr int cmHelpAbout = 130;
@@ -56,5 +57,10 @@ constexpr int cmBroadcastDebugStateChanged = 2006;
 constexpr int cmBreakpointsChanged = 2007;
 
 // Debug local commands
+
+
+// Other settings
+constexpr int eventDebugStateChangedNormal = 0x0;
+constexpr int eventDebugStateChangedNoUpdateLocation= 0x1;
 
 #endif 

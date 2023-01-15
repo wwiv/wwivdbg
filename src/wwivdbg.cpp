@@ -100,7 +100,8 @@ void TDebuggerApp::idle() {
     message(this, evBroadcast, cmDebugDetached, 0);
   } else if (update) {
     // handle updates if no errors.
-    message(this, evBroadcast, cmBroadcastDebugStateChanged, 0);
+    messageInt(this, evBroadcast, cmBroadcastDebugStateChanged,
+      eventDebugStateChangedNoUpdateLocation);
   }
 }
 

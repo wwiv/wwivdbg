@@ -24,6 +24,7 @@
 #include "utils.h"
 
 short execDialog(TDialog *d, void *data) {
+  d->options |= ofCentered;
   if (auto *p = TProgram::application->validView(d)) {
     if (data != nullptr) {
       p->setData(data);
@@ -36,4 +37,20 @@ short execDialog(TDialog *d, void *data) {
     return result;
   }
   return cmCancel;
+}
+
+void* messageInt(TView* receiver, ushort what, ushort command, int info) {
+  if (receiver == nullptr) {
+    return 0;
+  }
+
+  TEvent event{};
+  event.what = what;
+  event.message.command = command;
+  event.message.infoInt = info;
+  receiver->handleEvent(event);
+  if (event.what == evNothing) {
+    return event.message.infoPtr;
+  }
+  return nullptr;
 }

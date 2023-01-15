@@ -109,11 +109,16 @@ bool DebugProtocol::attached() const {
 void DebugProtocol::set_attached(bool a) {
   std::lock_guard<std::mutex> lock(mu_);
   attached_ = a;
-  if (!a) {
+  if (!attached_) {
     variables_.clear();
     source_.clear();
     stack_.clear();
-    // TODO(rushfan): Should we clear breakpoints or just remove the remote ID from them?
+    state_.clear();
+    // make all breakpoints local
+    for (auto& b : breakpoints_.breakpoints) {
+      b.published = false;
+      b.remote_id = 0;
+    }
   }
 }
 
@@ -317,6 +322,7 @@ void Breakpoints::UpdateRemote(const nlohmann::json& b) {
   int line = b["line"];
   std::string typ = b["typ"];
   int64_t remote_id = b["id"];
+  int64_t hit_count = b["hit_count"];
 
   for (auto it = breakpoints.begin(); it != breakpoints.end(); ++it) {
     auto& lb = *it;
@@ -338,6 +344,8 @@ void Breakpoints::UpdateRemote(const nlohmann::json& b) {
   newb.line = line;
   newb.published = true;
   newb.remote_id = remote_id;
+  newb.typ = "line";
+  newb.hit_count = hit_count;
   breakpoints.emplace_back(newb);
 }
 
@@ -353,6 +361,9 @@ void Breakpoints::NewLocalLine(const std::string& module, int line) {
   newb.module = module;
   newb.line = line;
   newb.published = false;
+  newb.typ = "line";
+  newb.hit_count = 0;
+  newb.remote_id = 0;
   breakpoints.emplace_back(newb);
 
 }
@@ -364,7 +375,7 @@ void DebugProtocol::NewLineBreakpoint(const std::string& module, int line) {
   }
 
   CreateBreakpoint(module, "line", line);
-  // CreateBreakpoint does not broadcast
+  // CreateBreakpoint does not broadcast, do it now explicitly.
   message(app_, evBroadcast, cmBroadcastDebugStateChanged, 0);
 }
 

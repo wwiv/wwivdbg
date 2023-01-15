@@ -96,7 +96,10 @@ void TStackWindow::UpdateStack(const std::vector<std::string>& stack) {
   for (const auto& v : stack) {
     lines.push_back(fmt::format("F{:03d} | {}", frame++, v));
   }
-  auto m = debug_->state().module;
-  lines.push_back(fmt::format("F{:03d} | <{}>", frame++, m));
+  if (debug_->attached()) {
+    // Only add root module when attached.
+    auto m = debug_->state().module;
+    lines.push_back(fmt::format("F{:03d} | <{}>", frame++, m));
+  }
   fp->SetText(lines);
 }

@@ -44,15 +44,24 @@ public:
   int pos{0};
   int row{0};
   int col{0};
+
+  void clear() {
+    initial_module.clear();
+    module.clear();
+    pos = row = col = 0;
+  }
 };
 
 // Local
 struct Breakpoint {
   // remote ID
-  int remote_id;
+  int remote_id{ -1 };
   int line{ -1 };
   std::string module;
+  // always line so far
+  std::string typ;
   bool published{ false };
+  int hit_count{ 0 };
 };
 
 

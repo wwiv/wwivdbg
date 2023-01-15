@@ -134,7 +134,9 @@ void TSourceWindow::handleEvent(TEvent &event) {
     return;
   case cmBroadcastDebugStateChanged: {
     const auto &s = debug_->state();
-    fp->SetSelectedPosition(s.pos, s.row, s.col);
+    if (event.message.infoInt != eventDebugStateChangedNoUpdateLocation) {
+      fp->SetSelectedPosition(s.pos, s.row, s.col);
+    }
     if (!s.module.empty()) {
       module_ = s.module;
     }

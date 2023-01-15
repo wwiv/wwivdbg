@@ -86,7 +86,8 @@ TColorAttr TBreakpointsPane::mapColor(uchar index) noexcept {
 }
 
 TMenuItem& TBreakpointsPane::initContextMenu(TPoint) {
-  return *new TMenuItem("Remove ~B~reakpoint", cmBreakpointWindowRemove, kbNoKey);
+  return *new TMenuItem("Remove ~B~reakpoint", cmBreakpointWindowRemove, kbNoKey) + newLine() +
+    *new TMenuItem("~P~roperties", cmBreakpointWindowProperties, kbNoKey);
 }
 
 bool TBreakpointsPane::hilightCurrentLine() {
@@ -145,6 +146,11 @@ void TBreakpointsWindow::handleCommandEvent(TEvent& event) {
     clearEvent(event);
     message(TProgram::deskTop, evBroadcast, cmBreakpointsChanged, 0);
   } break;
+  case cmBreakpointWindowProperties: {
+    const auto index = fp->focused;
+    showInfoDialog(index);
+    clearEvent(event);
+  } break;
   default:
     TWindow::handleEvent(event);
   }
@@ -200,4 +206,63 @@ TPalette& TBreakpointsWindow::getPalette() const {
 
 TColorAttr TBreakpointsWindow::mapColor(uchar index) noexcept {
   return TWindow::mapColor(index);
+}
+
+struct breakpoints_dialog_data_t {
+  char module[128];
+  char line[128];
+  char remote_id[128];
+  ushort published;
+};
+
+void TBreakpointsWindow::showInfoDialog(int index) {
+  TRect bounds(0, 6, 40, 19);
+  if (TDialog* d = new TDialog(bounds, "Breakpoint")) {
+    const auto&bp = debug_->breakpoints().breakpoints.at(index);
+    breakpoints_dialog_data_t data;
+    strcpy(data.module, bp.module.c_str());
+    strcpy(data.line, std::to_string(bp.line).c_str());
+    strcpy(data.remote_id, std::to_string(bp.remote_id).c_str());
+    data.published = bp.published ? 1 : 0;
+
+    const int pad = 1;
+    const int btnPad = 4;
+    const int lblWid = 10;
+    const int lblX = 2;
+    const int ctrlWid = 12;
+    const int ctrlX = lblX + lblWid + pad;
+    const int btnX = lblWid + pad + ctrlWid + btnPad;
+    const int start_y = 2;
+
+    int y = start_y;
+    TRect lr(lblX, y, lblX + lblWid, y + 1);
+    TRect cr(ctrlX, y, ctrlX + ctrlWid, y + 1);
+    auto module = new TInputLine(cr, 128);
+    d->insert(module);
+    d->insert(new TLabel(lr, "Module:", module));
+
+    lr.move(0, 2);
+    cr.move(0, 2);
+    auto line = new TInputLine(cr, 128);
+    d->insert(line);
+    d->insert(new TLabel(lr, "Line:", line));
+
+    lr.move(0, 2);
+    cr.move(0, 2);
+    auto remote_id = new TInputLine(cr, 128);
+    d->insert(remote_id);
+    d->insert(new TLabel(lr, "Remote ID:", remote_id));
+
+    lr.move(0, 2);
+    cr.move(0, 2);
+    auto published = new TCheckBoxes(cr, new TSItem("Yes", nullptr));
+    d->insert(published);
+    d->insert(new TLabel(lr, "Published:", published));
+
+    TRect r(btnX, start_y, btnX + 10, start_y + 2);
+    d->insert(new TButton(r, "Cl~o~se", cmCancel, bfDefault));
+    execDialog(d, &data);
+  }
+
+    
 }
