@@ -55,6 +55,12 @@ TSourcePane::TSourcePane(const TRect &bounds, TScrollBar *hsb, TScrollBar *vsb,
                          TIndicator *indicator, DebugProtocol *debug)
     : TDataPane(bounds, hsb, vsb, indicator), debug_(debug) {
   context_menu_enabled = true;
+  if (debug_->attached()) {
+    enableCommand(cmBreakpointAdd);
+  }
+  else {
+    disableCommand(cmBreakpointAdd);
+  }
   normalCursor();
 }
 
@@ -141,6 +147,12 @@ void TSourceWindow::handleEvent(TEvent &event) {
       module_ = s.module;
     }
     fp->draw();
+    if (debug_->attached()) {
+      enableCommand(cmBreakpointAdd);
+    }
+    else {
+      disableCommand(cmBreakpointAdd);
+    }
     // DO NOT CLEAR event
   } break;
   }
