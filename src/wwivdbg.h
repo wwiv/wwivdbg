@@ -18,8 +18,11 @@
 #define INCLUDED_WWIVDBG_WWIVDBG_H
 
 #include "tvision/tv.h"
+#include <chrono>
 #include <memory>
 #include <string>
+#include <mutex>
+#include <thread>
 
 class DebugProtocol;
 
@@ -36,23 +39,23 @@ class TStackWindow;
 class TDebuggerApp : public TApplication {
 
 public:
-  TDebuggerApp(int argc, char **argv);
+  TDebuggerApp(int argc, char** argv);
   ~TDebuggerApp();
 
-  virtual void handleEvent(TEvent &event) override;
-  void handleCommand(TEvent &event);
-  void handleBroadcast(TEvent &event);
-  virtual void eventError(TEvent &event) override;
+  virtual void handleEvent(TEvent& event) override;
+  void handleCommand(TEvent& event);
+  void handleBroadcast(TEvent& event);
+  virtual void eventError(TEvent& event) override;
   virtual bool valid(ushort cmd) override;
 
-  static TMenuBar *initMenuBar(TRect);
-  static TStatusLine *initStatusLine(TRect);
+  static TMenuBar* initMenuBar(TRect);
+  static TStatusLine* initStatusLine(TRect);
   virtual void outOfMemory() override;
-  virtual void getEvent(TEvent &event) override;
+  virtual void getEvent(TEvent& event) override;
   virtual void idle() override;
 
 private:
-  TEditWindow *openEditor(const std::string& fileName, Boolean visible);
+  TEditWindow* openEditor(const std::string& fileName, Boolean visible);
   TStackWindow* findStackWindow();
   TSourceWindow* findSourceWindow();
   TVarsWindow* findVarsWindow();
@@ -63,13 +66,20 @@ private:
 
   void ShowAboutBox();
 
-  int windowNumber_{0};
+  int windowNumber_{ 0 };
   std::shared_ptr<DebugProtocol> debug_;
   TCommandSet attached_cmds_;
   TCommandSet detached_cmds_;
+
+  std::chrono::steady_clock::time_point last_state_update;
+  std::thread idle_thread;
+
+  std::mutex idle_mu_;
+  bool need_update_message_{ false };
+  bool async_update_remote_error_{ false };
 };
 
-TDialog *createFindDialog();
-TDialog *createReplaceDialog();
+TDialog* createFindDialog();
+TDialog* createReplaceDialog();
 
 #endif

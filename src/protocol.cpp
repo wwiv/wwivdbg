@@ -49,34 +49,40 @@ bool DebugProtocol::UpdateSource() {
 }
 
 using json = nlohmann::json;
-bool DebugProtocol::UpdateState(const std::string& s) {
-  json j = json::parse(s);
-  const auto& loc = j["location"];
-  state_.initial_module = j["initial_module"].get<std::string>();
-  state_.module = loc["module"].get<std::string>();
-  state_.pos = loc["pos"].get<int>();
-  state_.row = loc["row"].get<int>();
-  state_.col = loc["col"].get<int>();
+bool DebugProtocol::UpdateState(const std::string& s, bool fireEvent) {
+  {
+    std::lock_guard<std::mutex> lock(mu_);
 
-  const auto& jvars = j["vars"];
-  variables_.clear();
-  for (const auto& v : jvars) {
-    variables_.push_back(v.get<Variable>());
+    json j = json::parse(s);
+    const auto& loc = j["location"];
+    state_.initial_module = j["initial_module"].get<std::string>();
+    state_.module = loc["module"].get<std::string>();
+    state_.pos = loc["pos"].get<int>();
+    state_.row = loc["row"].get<int>();
+    state_.col = loc["col"].get<int>();
+
+    const auto& jvars = j["vars"];
+    variables_.clear();
+    for (const auto& v : jvars) {
+      variables_.push_back(v.get<Variable>());
+    }
+
+    const auto& jstack = j["stack"];
+    stack_.clear();
+    for (const auto& v : jstack) {
+      stack_.push_back(v.get<std::string>());
+    }
+
+    const auto& jbreakpoints = j["breakpoints"];
+    for (const auto& v : jbreakpoints) {
+      breakpoints_.UpdateRemote(v);
+    }
   }
 
-  const auto& jstack = j["stack"];
-  stack_.clear();
-  for (const auto& v : jstack) {
-    stack_.push_back(v.get<std::string>());
+  if (fireEvent) {
+    // State does not go into the queue
+    message(app_, evBroadcast, cmBroadcastDebugStateChanged, 0);
   }
-
-  const auto& jbreakpoints = j["breakpoints"];
-  for (const auto& v : jbreakpoints) {
-    breakpoints_.UpdateRemote(v);
-  }
-
-  // State does not go into the queue
-  message(app_, evBroadcast, cmBroadcastDebugStateChanged, 0);
   return true;
 }
 
@@ -87,6 +93,14 @@ bool DebugProtocol::UpdateState() {
   return false;
 }
 
+std::pair<std::string, bool> DebugProtocol::GetState() {
+  if (auto state = Get("state", false)) {
+    return std::make_pair(state.value(), false);
+  }
+  return std::make_pair("", true);
+}
+
+
 bool DebugProtocol::attached() const {
   std::lock_guard<std::mutex> lock(mu_);
   return attached_;
@@ -95,6 +109,12 @@ bool DebugProtocol::attached() const {
 void DebugProtocol::set_attached(bool a) {
   std::lock_guard<std::mutex> lock(mu_);
   attached_ = a;
+  if (!a) {
+    variables_.clear();
+    source_.clear();
+    stack_.clear();
+    // TODO(rushfan): Should we clear breakpoints or just remove the remote ID from them?
+  }
 }
 
 bool DebugProtocol::Attach() {
@@ -121,6 +141,7 @@ bool DebugProtocol::Detach() {
     return true;
   }
   // detach anyway if we got an error here.
+  set_attached(false);
   message(app_, evBroadcast, cmDebugDetached, 0);
   return false;
 }
@@ -174,26 +195,50 @@ bool DebugProtocol::TraceIn() {
   return UpdateState();
 }
 
+bool DebugProtocol::Run() {
+  if (!attached()) {
+    return false;
+  }
+  if (auto state = Post("run")) {
+    return UpdateState(state.value());
+  }
+  return UpdateState();
+}
+
 std::optional<std::string> DebugProtocol::Delete(const std::string& part) {
   const auto uri = fmt::format("/debug/v1/{}", part);
-  if (auto res = cli_->Delete(uri)) {
+  auto res = cli_->Delete(uri);
+  if (res) {
     if (res->status != 200) {
       // TODO(rushfan): Log error.
       return std::nullopt;
     }
     return res->body;
   }
+  // Server has gone away, let's detach
+  if (res.error() == httplib::Error::Connection) {
+    set_attached(false);
+    message(app_, evBroadcast, cmDebugDetached, 0);
+  }
   return std::nullopt;
 }
 
-std::optional<std::string> DebugProtocol::Get(const std::string& part) {
+std::optional<std::string> DebugProtocol::Get(const std::string& part, bool handleError) {
   const auto uri = fmt::format("/debug/v1/{}", part);
-  if (auto res = cli_->Get(uri)) {
+  auto res = cli_->Get(uri);
+  if (res) {
     if (res->status != 200) {
       // TODO(rushfan): Log error.
       return std::nullopt;
     }
     return res->body;
+  }
+  // Server has gone away, let's detach
+  if (res.error() == httplib::Error::Connection) {
+    set_attached(false);
+    if (handleError) {
+      message(app_, evBroadcast, cmDebugDetached, 0);
+    }
   }
   return std::nullopt;
 }
@@ -201,24 +246,36 @@ std::optional<std::string> DebugProtocol::Get(const std::string& part) {
 std::optional<std::string> DebugProtocol::Post(const std::string &part,
                                                const httplib::Params &params) {
   const auto uri = fmt::format("/debug/v1/{}", part);
-  if (auto res = cli_->Post(uri, params)) {
+  auto res = cli_->Post(uri, params);
+  if (res) {
     if (res->status != 200) {
       // TODO(rushfan): Log error.
       return std::nullopt;
     }
     return res->body;
   }
+  // Server has gone away, let's detach
+  if (res.error() == httplib::Error::Connection) {
+    set_attached(false);
+    message(app_, evBroadcast, cmDebugDetached, 0);
+  }
   return std::nullopt;
 }
 
 std::optional<std::string> DebugProtocol::Post(const std::string& part) {
   const auto uri = fmt::format("/debug/v1/{}", part);
-  if (auto res = cli_->Post(uri)) {
+  auto res = cli_->Post(uri);
+  if (res) {
     if (res->status != 200) {
       // TODO(rushfan): Log error.
       return std::nullopt;
     }
     return res->body;
+  } 
+  // Server has gone away, let's detach
+  if (res.error() == httplib::Error::Connection) {
+    set_attached(false);
+    message(app_, evBroadcast, cmDebugDetached, 0);
   }
   return std::nullopt;
 }

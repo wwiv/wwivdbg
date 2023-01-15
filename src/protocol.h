@@ -92,21 +92,24 @@ public:
   std::vector<std::string> stack() { return stack_; }
   Breakpoints& breakpoints() { return breakpoints_; }
   DebugState state() { return state_; }
-  bool UpdateState(const std::string& state);
+  bool UpdateState(const std::string& state, bool fireEvent = true);
   bool UpdateState();
+  // Gets the state, good for being called asynchronously.
+  std::pair<std::string, bool> GetState();
   bool Attach();
   bool Detach();
   bool CreateBreakpoint(const std::string& module, const std::string& typ, int line);
   bool DeleteBreakpoint(int id);
   bool StepOver();
   bool TraceIn();
+  bool Run();
   bool attached() const;
   void set_attached(bool a);
   void NewLineBreakpoint(const std::string& module, int line);
   void UpdateLocalBreakpoints();
 
 private:
-  std::optional<std::string> Get(const std::string &part);
+  std::optional<std::string> Get(const std::string &part, bool handleError = true);
   std::optional<std::string> Delete(const std::string &part);
   std::optional<std::string> Post(const std::string &part);
   std::optional<std::string> Post(const std::string &part, const httplib::Params& params);

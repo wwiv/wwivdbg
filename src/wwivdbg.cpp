@@ -41,6 +41,7 @@
 #define Uses_TStatusLine
 #define Uses_TSubMenu
 
+#include <chrono>
 #include "tvision/tv.h"
 #include "fmt/format.h"
 #include "breakpoints.h"
@@ -57,6 +58,7 @@
 #include <string>
 #include <thread>
 
+using namespace std::chrono;
 
 
 TMenuBar *TDebuggerApp::initMenuBar(TRect r) { 
@@ -82,8 +84,24 @@ void TDebuggerApp::getEvent(TEvent& event) {
 }
 
 void TDebuggerApp::idle() { 
-  // TODO(rushfan): Look for debug messages then broadcast to right places.
   TApplication::idle(); 
+
+  bool update = false;
+  bool error = false;
+  {
+    std::lock_guard lock(idle_mu_);
+    update = need_update_message_;
+    error = async_update_remote_error_;
+    need_update_message_ = false;
+    async_update_remote_error_ = false;
+  }
+  if (error) {
+    // handle remote detaching.
+    message(this, evBroadcast, cmDebugDetached, 0);
+  } else if (update) {
+    // handle updates if no errors.
+    message(this, evBroadcast, cmBroadcastDebugStateChanged, 0);
+  }
 }
 
 
@@ -188,6 +206,26 @@ TDebuggerApp::TDebuggerApp(int argc, char **argv)
 
   detached_cmds_ += cmDebugAttach;
   enableCommands(detached_cmds_);
+
+  last_state_update = std::chrono::steady_clock::now();
+  idle_thread = std::thread([this] {
+  while (true) {
+    if (debug_->attached()) {
+      auto s = debug_->GetState();
+      if (!s.second) {
+        // No error, update the state.
+        debug_->UpdateState(s.first, false);
+        std::lock_guard lock(idle_mu_);
+        need_update_message_ = true;
+      }
+      else if (s.second) {
+        std::lock_guard lock(idle_mu_);
+        async_update_remote_error_ = true;
+      }
+    }
+    std::this_thread::sleep_for(std::chrono::seconds(5));
+  }
+  });
 }
 
 TDebuggerApp::~TDebuggerApp() { debug_.reset(); }
@@ -232,7 +270,7 @@ void TDebuggerApp::handleBroadcast(TEvent &event) {
   case cmDebugDetached: {
     enableCommands(detached_cmds_);
     disableCommands(attached_cmds_);
-    messageBox("Debugger detached", mfInformation | mfOKButton);
+    message(this, evBroadcast, cmBroadcastDebugStateChanged, 0);
   }
   break;
   default:
@@ -265,19 +303,26 @@ void TDebuggerApp::handleCommand(TEvent &event) {
     findVarsWindow();
   } break;
   case cmDebugRun:
-    messageBox("Implement Run", mfOKButton | mfError);
+    if (!debug_->Run()) {
+      messageBox("Error response from Run Command", mfOKButton | mfError);
+    }
     break;
   case cmDebugTraceIn:
     if (!debug_->TraceIn()) {
-      messageBox("Error in  RunTraceIn", mfOKButton | mfError);
+      messageBox("Error response from TraceIn", mfOKButton | mfError);
     }
     break;
   case cmDebugStepOver:
     if (!debug_->StepOver()) {
-      messageBox("Error in RunStepOver", mfOKButton | mfError);
+      messageBox("Error response from StepOver", mfOKButton | mfError);
     }
     break;
   case cmDebugAttach: {
+    {
+      std::lock_guard lock(idle_mu_);
+      async_update_remote_error_ = false;
+      need_update_message_ = false;
+    }
     if (!debug_->Attach()) {
       messageBox("Error attaching to BBS.", mfOKButton | mfError);
     }
