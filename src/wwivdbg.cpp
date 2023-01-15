@@ -224,12 +224,25 @@ TDebuggerApp::TDebuggerApp(int argc, char **argv)
         async_update_remote_error_ = true;
       }
     }
+    {
+      std::lock_guard lock(idle_mu_);
+      if (async_thread_need_to_exit_) {
+        return;
+      }
+    }
     std::this_thread::sleep_for(std::chrono::seconds(5));
   }
   });
 }
 
-TDebuggerApp::~TDebuggerApp() { debug_.reset(); }
+TDebuggerApp::~TDebuggerApp() { 
+  {
+    std::lock_guard lock(idle_mu_);
+    async_thread_need_to_exit_ = true;
+  }
+  idle_thread.join();
+  debug_.reset(); 
+}
 
 void TDebuggerApp::fileOpen() {
   char fileName[MAXPATH];

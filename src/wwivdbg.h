@@ -77,6 +77,7 @@ private:
   std::mutex idle_mu_;
   bool need_update_message_{ false };
   bool async_update_remote_error_{ false };
+  bool async_thread_need_to_exit_{ false };
 };
 
 TDialog* createFindDialog();
