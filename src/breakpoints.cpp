@@ -216,7 +216,7 @@ struct breakpoints_dialog_data_t {
 };
 
 void TBreakpointsWindow::showInfoDialog(int index) {
-  TRect bounds(0, 6, 40, 19);
+  TRect bounds(0, 0, 40, 10);
   if (TDialog* d = new TDialog(bounds, "Breakpoint")) {
     const auto&bp = debug_->breakpoints().breakpoints.at(index);
     breakpoints_dialog_data_t data;

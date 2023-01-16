@@ -5,9 +5,9 @@ for debugging WWIVbasic scripts.
 
 ## Getting started
 
-1. You must build a WWIV BBS from the `debugger` branch here:
-   https://github.com/wwivbbs/wwiv/tree/debugger
-   See https://github.com/wwivbbs/wwiv/blob/debugger/README.md for
+1. You must build a latest 5.9 WWIV BBSh here:
+   https://github.com/wwivbbs/wwiv
+   See https://github.com/wwivbbs/wwiv/blob/main/README.md for
    more information on building WWIV.
 
 2. You must build wwivdbg.  It builds with cmake and vcpkg, so is
