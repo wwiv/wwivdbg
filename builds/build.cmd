@@ -15,7 +15,7 @@
 setlocal
 @echo off
 
-del wwiv-*.zip
+del wwivdbg-*.zip
 
 if /I "%LABEL%"=="win-x86" (
 	@echo "Setting x86 (32-bit) Architecture"
@@ -30,7 +30,7 @@ set WWIVDBG_DISTRO=%LABEL%
 set ZIP_EXE="C:\Program Files\7-Zip\7z.exe"
 set WWIVDBG_RELEASE=1.0.0
 set WWIVDBG_FULL_RELEASE=%WWIVDBG_RELEASE%.%BUILD_NUMBER%
-set WWIVDBG_RELEASE_ARCHIVE_FILE=wwiv-%WWIVDBG_DISTRO%-%WWIVDBG_FULL_RELEASE%.zip
+set WWIVDBG_RELEASE_ARCHIVE_FILE=wwivdbg-%WWIVDBG_DISTRO%-%WWIVDBG_FULL_RELEASE%.zip
 set CMAKE_BINARY_DIR=%WORKSPACE%\_build
 set WWIVDBG_RELEASE_DIR=%CMAKE_BINARY_DIR%\release
 

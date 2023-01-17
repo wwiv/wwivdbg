@@ -14,7 +14,7 @@ declare -r RELEASE_VERSION=${RELEASE_VERSION:-"1.0.0"}
 declare -r CMAKE_BINARY_DIR=${CMAKE_BINARY_DIR:-"${WORKSPACE}/_build"}
 declare -r RELEASE_DIR=${RELEASE_DIR:-"${CMAKE_BINARY_DIR}/release"}
 declare -r FULL_RELEASE="${RELEASE_VERSION}.${BUILD_NUMBER}"
-declare -r RELEASE_ARCHIVE_FILE=wwiv-${WWIVDBG_ARCH}-${FULL_RELEASE}.tar.gz
+declare -r RELEASE_ARCHIVE_FILE=wwivdbg-${WWIVDBG_ARCH}-${FULL_RELEASE}.tar.gz
 
 echo "============================================================================="
 echo "Workspace:        ${WORKSPACE}"
