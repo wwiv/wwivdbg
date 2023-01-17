@@ -59,7 +59,7 @@ set(WWIVDBG_BUILD_NUMBER "development" CACHE STRING "WWIVdbg Build Number")
 set(WWIVDBG_FULL_RELEASE "${WWIVDBG_RELEASE}.${WWIVDBG_BUILD_NUMBER}" CACHE INTERNAL "WWIVdbg Release Version, 4 digits with build number as 4th")
 set(WWIVDBG_ARCH "x86" CACHE STRING "x86 or x64")
 set(WWIVDBG_DISTRO "unknown" CACHE STRING "WWIVdbg OS Distribution e.g. (win-x86 | linux-debian10) ")
-set(CPACK_PACKAGE_FILE_NAME "wwiv-${WWIVDBG_DISTRO}-${WWIVDBG_FULL_RELEASE}")
+set(CPACK_PACKAGE_FILE_NAME "wwivdbg-${WWIVDBG_DISTRO}-${WWIVDBG_FULL_RELEASE}")
 
 set(WWIVDBG_INSTALL_SRC "${CMAKE_SOURCE_DIR}/install" CACHE STRING "By default this is: ${CMAKE_SOURCE_DIR}/install")
 set(WWIVDBG_RELEASE_DIR "${CMAKE_BINARY_DIR}/release" CACHE STRING "By default this is: ${CMAKE_BINARY_DIR}/release")

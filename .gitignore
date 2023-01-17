@@ -1,3 +1,5 @@
 vcpkg_installed/ 
 .vs/ 
 out/ 
+_build/ 
+vcpkg_installed/ 
