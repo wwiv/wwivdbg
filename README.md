@@ -33,3 +33,26 @@ under the WWIV home dir named ```scripts```.
 The ```-d``` command line parameter will cause *every* script invocation
 to wait for the debuger to attach before executing, so only use it when
 you are running and debuging things locally as sysop.
+
+4. Screenshots
+
+![About](./docs/images/about.png)
+
+
+![Attaching Debugger](./docs/images/attach.png)
+
+
+![Attaching Debugger](./docs/images/attach.png)
+
+
+![Adding Breakpoint](./docs/images/addbp.png)
+
+
+![Breakpoint Properties](./docs/images/bp-props.png)
+
+
+![Callstack while stepping](./docs/images/callstack.png)
+
+
+![Variables while stepping](./docs/images/stepping.png)
+
