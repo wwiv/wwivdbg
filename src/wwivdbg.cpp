@@ -362,7 +362,7 @@ void TDebuggerApp::handleCommand(TEvent &event) {
     b.published = true;
     b.remote_id = 2112;
     b.hit_count = 11;
-    showInfoDialog2(b);
+    showInfoDialog(b);
     clearEvent(event);
 
   } break;

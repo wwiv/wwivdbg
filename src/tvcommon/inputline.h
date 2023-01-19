@@ -118,23 +118,36 @@ private:
   T* data_{ nullptr };
 };
 
-
-class TFormCheckBoxes : public TCheckBoxes {
+// TCheckBoxes like class that takes data as an integer value.
+class TFormCheckBoxesInteger : public TCheckBoxes {
 public:
-  // TODO(rushfan): Should really change this to a better data structure.
-  TFormCheckBoxes(int32_t *data, TSItem *items) noexcept
-      : TCheckBoxes(TRect(0, 0, 10, 1), items), data_(data) {
-  }
+  TFormCheckBoxesInteger(int32_t* data, TSItem* items) noexcept;
 
-  virtual void getData(void* rec) {
-    *data_ = value;
-  }
+  virtual void getData(void *rec) { *data_ = value; }
+  virtual void setData(void *rec) { value = *data_; }
 
-  virtual void setData(void* rec) {
-    value = *data_;
-  }
 private:
   int32_t* data_{ nullptr };
 };
+
+
+struct CheckBoxItem {
+  std::string text;
+  bool value;
+};
+
+// TCheckBoxes like class that takes a vector of CheckBoxItems
+class TFormCheckBoxes : public TCheckBoxes {
+public:
+  TFormCheckBoxes(std::vector<CheckBoxItem>* items) noexcept;
+
+  virtual void getData(void* rec);
+  virtual void setData(void* rec);
+
+private:
+  int32_t* data_{ nullptr };
+  std::vector<CheckBoxItem>* items_;
+};
+
 #endif
 

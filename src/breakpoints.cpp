@@ -149,8 +149,7 @@ void TBreakpointsWindow::handleCommandEvent(TEvent& event) {
     message(TProgram::deskTop, evBroadcast, cmBreakpointsChanged, 0);
   } break;
   case cmBreakpointWindowProperties: {
-    const auto index = fp->focused;
-    showInfoDialog(index);
+    showInfoDialog(debug_->breakpoints().breakpoints.at(fp->focused));
     clearEvent(event);
   } break;
   default:
@@ -210,64 +209,7 @@ TColorAttr TBreakpointsWindow::mapColor(uchar index) noexcept {
   return TWindow::mapColor(index);
 }
 
-struct breakpoints_dialog_data_t {
-  char module[128];
-  char line[128];
-  char remote_id[128];
-  ushort published;
-};
-
-void TBreakpointsWindow::showInfoDialog(int index) {
-  TRect bounds(0, 0, 40, 11);
-  if (TDialog* d = new TDialog(bounds, "Breakpoint")) {
-    const auto&bp = debug_->breakpoints().breakpoints.at(index);
-    breakpoints_dialog_data_t data;
-    strcpy(data.module, bp.module.c_str());
-    strcpy(data.line, std::to_string(bp.line).c_str());
-    strcpy(data.remote_id, std::to_string(bp.remote_id).c_str());
-    data.published = bp.published ? 1 : 0;
-
-    const int start_y = 2;
-    const int lblWid = 10;
-    const int ctrlWid = 12;
-
-    const int pad = 2;
-    const int btnPad = pad + 1;
-    const int ctrlX = pad + lblWid + pad;
-    const int btnX = lblWid + pad + ctrlWid + btnPad;
-
-    int y = start_y;
-    TRect lr(pad, y, pad + lblWid, y + 1);
-    TRect cr(ctrlX, y, ctrlX + ctrlWid, y + 1);
-    TView* control = new TInputLine(cr, 128);
-    d->insert(control);
-    d->insert(new TLabel(lr, "~M~odule:", control));
-
-    lr.move(0, 2);
-    cr.move(0, 2);
-    control = new TInputLine(cr, 128);
-    d->insert(control);
-    d->insert(new TLabel(lr, "~L~ine:", control));
-
-    lr.move(0, 2);
-    cr.move(0, 2);
-    control = new TInputLine(cr, 128);
-    d->insert(control);
-    d->insert(new TLabel(lr, "~R~emote ID:", control));
-
-    lr.move(0, 2);
-    cr.move(0, 2);
-    control = new TCheckBoxes(cr, new TSItem("Yes", nullptr));
-    d->insert(control);
-    d->insert(new TLabel(lr, "~P~ublished:", control));
-
-    TRect r(btnX, start_y, btnX + 10, start_y + 2);
-    d->insert(new TButton(r, "Cl~o~se", cmCancel, bfDefault));
-    execDialog(d, &data);
-  }
-}
-
-void showInfoDialog2(Breakpoint& bp) {
+void showInfoDialog(Breakpoint& bp) {
   TRect bounds(0, 0, 40, 11);
   TRect fake{ 0, 0, 10, 1 };
   TFormColumn c(0, 0, 2, 12, 12, FormLabelPosition::left);
@@ -275,7 +217,10 @@ void showInfoDialog2(Breakpoint& bp) {
   c.add("~L~ine:", new TFormNumberInputLine(&bp.line));
   c.add("~R~emote ID:", new TFormNumberInputLine(&bp.remote_id));
   int x = 0;
-  c.add("~P~ublished:", new TFormCheckBoxes(&x, new TSItem("Yes", nullptr)));
+
+  std::vector<CheckBoxItem> items;
+  items.emplace_back("Yes", bp.published);
+  c.add("~P~ublished:", new TFormCheckBoxes(&items));
 
   TForm f;
   f.add(&c);
@@ -283,12 +228,8 @@ void showInfoDialog2(Breakpoint& bp) {
   f.addButton("C~a~ncel", cmCancel, bfNormal);
   
   if (auto o = f.createDialog("Breakpoints2")) {
-    breakpoints_dialog_data_t data;
-    strcpy(data.module, bp.module.c_str());
-    strcpy(data.line, std::to_string(bp.line).c_str());
-    strcpy(data.remote_id, std::to_string(bp.remote_id).c_str());
-    data.published = bp.published ? 1 : 0;
-    execDialog(o.value(), &data);
+    char unused[1000];
+    execDialog(o.value(), &unused);
   }
 }
 

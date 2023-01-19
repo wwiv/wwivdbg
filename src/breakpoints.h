@@ -58,7 +58,6 @@ public:
 
   void SetText(const std::vector<std::string> &text);
   void UpdateBreakpointWindow();
-  void showInfoDialog(int index);
 
 private:
   TBreakpointsPane* fp;
@@ -66,7 +65,7 @@ private:
   std::shared_ptr<DebugProtocol> debug_;
 };
 
-void showInfoDialog2(Breakpoint& bp);
+void showInfoDialog(Breakpoint& bp);
 
 
 #endif

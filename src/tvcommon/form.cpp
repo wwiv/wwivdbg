@@ -68,10 +68,19 @@ int TFormColumn::width() const {
 }
 
 int TFormColumn::height() const {
+  int height = 3;
   if (labelPos_ == FormLabelPosition::left) {
-    return (items_.size() * 2) + 3;
+    for (const auto& item : items_) {
+      auto b = item.control->getBounds();
+      height += (b.b.y - b.a.y) + 1;
+    }
+    return height;
   } else {
-    return (items_.size() * 3) + 3;
+    for (const auto& item : items_) {
+      auto b = item.control->getBounds();
+      height += (b.b.y - b.a.y) + 2;
+    }
+    return height;
   }
 }
 
@@ -90,15 +99,15 @@ TDialog* TFormColumn::insertTo(TDialog* dialog) {
   if (labelPos_ == FormLabelPosition::left) {
     const int ctrlX = pad_ + labelWidth_ + pad_;
     TRect lr(pad_, y, pad_ + labelWidth_, y + 1);
-    TRect cr(ctrlX, y, ctrlX + controlWidth_, y + 1);
     for (auto& item : items_) {
       const auto bounds = item.control->getBounds();
-      auto height = bounds.b.y - bounds.a.y;
+      const auto height = bounds.b.y - bounds.a.y;
+      TRect lr(pad_, y, pad_ + labelWidth_, y + 1);
+      TRect cr(ctrlX, y, ctrlX + controlWidth_, y + height);
       item.control->setBounds(cr);
       dialog->insert(item.control);
       dialog->insert(new TLabel(lr, item.labelText, item.control));
-      lr.move(0, height + 1);
-      cr.move(0, height + 1);
+      y += height+1;
     }
   }
   else {

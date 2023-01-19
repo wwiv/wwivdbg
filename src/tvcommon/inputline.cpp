@@ -39,6 +39,7 @@
 #define Uses_TStatusDef
 #define Uses_TStatusItem
 #define Uses_TStatusLine
+#define Uses_TStringCollection
 #define Uses_TSubMenu
 
 #include "fmt/format.h"
@@ -70,3 +71,48 @@ void TFormInputLine::setData(void* rec) {
   strncpy(x.get(), data_->c_str(), maxLen);
   TInputLine::setData(x.get());
 }
+
+
+TFormCheckBoxesInteger::TFormCheckBoxesInteger(int32_t* data, TSItem* items) noexcept
+  : TCheckBoxes(TRect(0, 0, 10, 1), items), data_(data) {
+  auto b = getBounds();
+  b.b.y = strings->getCount();
+  setBounds(b);
+}
+
+TFormCheckBoxes::TFormCheckBoxes(std::vector<CheckBoxItem>* items) noexcept 
+  : TCheckBoxes(TRect(0, 0, 10, 1), nullptr), items_(items) {
+
+    delete strings;
+    strings = new TStringCollection(items->size(), 10);
+
+    int count = 0;
+    for (const auto& i : *items) {
+      strings->atInsert(count++, newStr(i.text.c_str()));
+    }
+
+    auto b = getBounds();
+    b.b.y = count;
+    setBounds(b);
+}
+
+void TFormCheckBoxes::getData(void* rec) {
+  int pos = 0;
+  for (auto& item : *items_) {
+    bool set = value & (1 << pos++);
+    item.value = set;
+  }
+}
+
+void TFormCheckBoxes::setData(void* rec) {  
+  uint32_t v{ 0 };
+  int pos = 0;
+  for (const auto& item : *items_) {
+    if (item.value) {
+      v |= (1 << pos);
+    }
+    ++pos;
+  }
+  value = v;
+}
+
