@@ -41,6 +41,7 @@
 #define Uses_TSubMenu
 
 #include "tvision/tv.h"
+#include "tvcommon/listwindow.h"
 #include "fmt/format.h"
 #include "commands.h"
 #include "protocol.h"
@@ -51,18 +52,18 @@
 
 
 TVarsPane::TVarsPane(const TRect &bounds, TScrollBar *hsb, TScrollBar *vsb)
-    : TDataPane(bounds, hsb, vsb, /* indicator */ nullptr) {}
+    : TWCListViewer(bounds, 1, hsb, vsb) {}
 
 
 TVarsWindow::TVarsWindow(TRect r, const std::shared_ptr<DebugProtocol>& debug)
     : TWindowInit(TWindow::initFrame),
-      TWindow(r, "Vars", 0), debug_(debug) {
+      TWCListWindow(r, "Vars", 0), debug_(debug) {
 
   palette = wpCyanWindow;
   hsb = standardScrollBar(sbHorizontal | sbHandleKeyboard);
   vsb = standardScrollBar(sbVertical | sbHandleKeyboard);
   insert(fp = new TVarsPane(getClipRect().grow(-1, -1), hsb, vsb));
-  SetText(debug->vars());
+  SetVariables(debug->vars());
 }
 
 TVarsWindow ::~TVarsWindow() = default;
@@ -81,7 +82,7 @@ void TVarsWindow::handleEvent(TEvent &event) {
     }
     break;
   case cmBroadcastDebugStateChanged: {
-    SetText(debug_->vars());
+    SetVariables(debug_->vars());
     // DO NOT CLEAR clearEvent(event);
   } break;
 
@@ -89,7 +90,7 @@ void TVarsWindow::handleEvent(TEvent &event) {
   TWindow::handleEvent(event);
 }
 
-void TVarsWindow::SetText(const std::vector<Variable> &vars) {
+void TVarsWindow::SetVariables(const std::vector<Variable> &vars) {
   std::vector<std::string> lines;
   lines.reserve(vars.size());
   for (const auto& v : vars) {
@@ -97,5 +98,5 @@ void TVarsWindow::SetText(const std::vector<Variable> &vars) {
       v.frame, v.type, v.name, v.value));
   }
 
-  fp->SetText(lines);
+  fp->setList(lines);
 }

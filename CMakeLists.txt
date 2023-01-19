@@ -18,7 +18,7 @@ find_package(nlohmann_json CONFIG REQUIRED)
 find_package(httplib CONFIG REQUIRED)
 
 add_library(tvcommon 
-  "src/tvcommon/datapane.cpp"
+  "src/tvcommon/srcview.cpp"
   "src/tvcommon/form.cpp"
   "src/tvcommon/inputline.cpp"
   "src/tvcommon/listwindow.cpp"

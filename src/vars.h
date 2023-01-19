@@ -24,29 +24,28 @@
 
 #include "tvision/tv.h"
 
-#include "tvcommon/datapane.h"
+#include "tvcommon/listwindow.h"
 #include <string>
 #include <vector>
 
 class Variable;
 
-class TVarsPane : public TDataPane {
+class TVarsPane : public TWCListViewer {
 
 public:
   TVarsPane(const TRect &bounds, TScrollBar *hsb, TScrollBar *vsb);
   ~TVarsPane() = default;
 };
 
-class TVarsWindow : public TWindow {
+class TVarsWindow : public TWCListWindow {
 public:
   TVarsWindow(TRect r, const std::shared_ptr<DebugProtocol>& debug);
   ~TVarsWindow();
 
   virtual void handleEvent(TEvent &event) override;
 
-  void SetText(const std::vector<Variable> &text);
-
 private:
+  void SetVariables(const std::vector<Variable> &text);
   TVarsPane* fp;
   TScrollBar* hsb, * vsb;
   std::shared_ptr<DebugProtocol> debug_;

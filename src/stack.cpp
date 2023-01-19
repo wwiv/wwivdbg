@@ -42,7 +42,6 @@
 #define Uses_TSubMenu
 
 #include "tvision/tv.h"
-#include "tvcommon/datapane.h"
 #include "fmt/format.h"
 #include "commands.h"
 #include "stack.h"
@@ -52,10 +51,10 @@
 #include <string>
 
 TStackInterior::TStackInterior(const TRect &r, TScrollBar *hsb, TScrollBar *vsb)
-    : TDataPane(r, hsb, vsb, nullptr) {}
+    : TWCListViewer(r, 1, hsb, vsb) {}
 
 TStackWindow::TStackWindow(const TRect &r, const std::shared_ptr<DebugProtocol>& debug)
-  : TWindowInit(&TWindow::initFrame), TWindow(r, "Call Stack", 0), debug_(debug) {
+  : TWindowInit(&TWindow::initFrame), TWCListWindow(r, "Call Stack", 0), debug_(debug) {
   auto inner = getClipRect();
   inner.grow(-1, -1);
 
@@ -101,5 +100,5 @@ void TStackWindow::UpdateStack(const std::vector<std::string>& stack) {
     auto m = debug_->state().module;
     lines.push_back(fmt::format("F{:03d} | <{}>", frame++, m));
   }
-  fp->SetText(lines);
+  fp->setList(lines);
 }

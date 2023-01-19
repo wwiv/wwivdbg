@@ -23,17 +23,17 @@
 #define Uses_TScrollBar
 
 #include "tvision/tv.h"
-#include "tvcommon/datapane.h"
+#include "tvcommon/listwindow.h"
 
 #include "protocol.h"
 #include <string>
 
-class TStackInterior : public TDataPane {
+class TStackInterior : public TWCListViewer {
 public:
   TStackInterior(const TRect &bounds, TScrollBar* hsb, TScrollBar* vsb);
 };
 
-class TStackWindow : public TWindow {
+class TStackWindow : public TWCListWindow {
 public:
   TStackWindow(const TRect &r, const std::shared_ptr<DebugProtocol>& debug);
   ~TStackWindow();

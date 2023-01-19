@@ -29,11 +29,11 @@
 #include <string>
 #include <vector>
 
-class TDataPane : public TScroller {
+class TWCSourceViewer : public TScroller {
 
 public:
-  TDataPane(const TRect& bounds, TScrollBar* hsb, TScrollBar* vsb, TIndicator* indicator);
-  ~TDataPane() = default;
+  TWCSourceViewer(const TRect& bounds, TScrollBar* hsb, TScrollBar* vsb, TIndicator* indicator);
+  ~TWCSourceViewer() = default;
   virtual void draw() override;
   virtual void handleEvent(TEvent& event) override;
   virtual void setState(ushort aState, Boolean enable);
@@ -44,7 +44,7 @@ public:
 
   // Sets the text buffer either as lines or text.
   virtual void SetText(const std::string& text);
-  virtual void SetText(const std::vector < std::string > & text);
+  virtual void SetText(const std::vector<std::string> &text);
 
   // Should the current line be hilighted
   virtual bool hilightCurrentLine() { return false; }

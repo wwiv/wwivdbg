@@ -23,7 +23,6 @@
 #define Uses_TScrollBar
 
 #include "tvision/tv.h"
-#include "datapane.h"
 #include <memory>
 #include <string>
 #include <string_view>
@@ -37,8 +36,6 @@ public:
   virtual TMenuItem& initContextMenu(TPoint);
   virtual void handleEvent(TEvent&) override;
   virtual void getText(char* dest, short item, short maxLen) override;
-  virtual TPalette& getPalette() const override;
-  TColorAttr mapColor(uchar index) noexcept override;
 
   virtual void setList(const std::vector<std::string>& list);
 

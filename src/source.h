@@ -23,23 +23,20 @@
 #define Uses_TScrollBar
 
 #include "tvision/tv.h"
-#include "tvcommon/datapane.h"
+#include "tvcommon/srcview.h"
 #include <memory>
 #include <string>
 #include <vector>
 
 class DebugProtocol;
 
-class TSourcePane : public TDataPane {
+class TSourcePane : public TWCSourceViewer {
 
 public:
   TSourcePane(const TRect &bounds, TScrollBar *hsb, TScrollBar *vsb, TIndicator* indicator,
               DebugProtocol* debug);
   ~TSourcePane() = default;
-  virtual void handleEvent(TEvent& event) override;
   virtual TMenuItem& initContextMenu(TPoint);
-
-  void doUpdate();
   bool hilightCurrentLine();
 
 private:

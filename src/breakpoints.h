@@ -23,7 +23,6 @@
 #define Uses_TScrollBar
 
 #include "tvision/tv.h"
-#include "tvcommon/datapane.h"
 #include "tvcommon/listwindow.h"
 #include <memory>
 #include <string>
@@ -37,10 +36,6 @@ public:
   TBreakpointsPane(const TRect &bounds, TScrollBar *hsb, TScrollBar *vsb);
   ~TBreakpointsPane() = default;
   virtual TMenuItem& initContextMenu(TPoint);
-  bool hilightCurrentLine();
-  virtual TPalette& getPalette() const;
-  TColorAttr mapColor(uchar index) noexcept;
-
 };
 
 class DebugProtocol;
@@ -53,10 +48,7 @@ public:
   void handleBroadcastEvent(TEvent& event);
   void handleCommandEvent(TEvent& event);
   virtual void handleEvent(TEvent& event) override;
-  virtual TPalette& getPalette() const;
-  TColorAttr mapColor(uchar index) noexcept;
 
-  void SetText(const std::vector<std::string> &text);
   void UpdateBreakpointWindow();
 
 private:

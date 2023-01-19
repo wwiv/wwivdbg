@@ -1,4 +1,3 @@
-#include "datapane.h"
 /*
  * Copyright (C)2023 WWIV Software Services
  *
@@ -44,13 +43,13 @@
 #define Uses_TStatusLine
 #define Uses_TSubMenu
 
-#include "datapane.h"
+#include "srcview.h"
 #include "tvision/tv.h"
 #include <sstream>
 #include <string>
 
 
-TDataPane::TDataPane(const TRect &bounds, TScrollBar *hsb, TScrollBar *vsb,
+TWCSourceViewer::TWCSourceViewer(const TRect &bounds, TScrollBar *hsb, TScrollBar *vsb,
                      TIndicator *indicator)
     : TScroller(bounds, hsb, vsb), indicator_(indicator) {
   options |= ofFramed;
@@ -70,12 +69,12 @@ static std::vector<std::string> split_string_by_newline(const std::string& str) 
   return result;
 }
 
-void TDataPane::SetText(const std::string& text) {
+void TWCSourceViewer::SetText(const std::string& text) {
   const auto lines = split_string_by_newline(text);
   SetText(lines);
 }
 
-void TDataPane::SetText(const std::vector<std::string>& text) {
+void TWCSourceViewer::SetText(const std::vector<std::string>& text) {
   lines = text;
   auto max_line_len = 0;
   for (const auto& l : lines) {
@@ -112,44 +111,44 @@ static std::string replace_tabs(const std::string& l) {
   return out;
 }
 
-void TDataPane::SetSelectedPosition(int pos, int row, int col) {
+void TWCSourceViewer::SetSelectedPosition(int pos, int row, int col) {
   pos_ = pos;
   selected_row_ = row;
   setCurPos(col, std::max(0, row - 1));
   doUpdate();
 }
 
-void TDataPane::setCurPos(int x, int y) { 
+void TWCSourceViewer::setCurPos(int x, int y) { 
   curPos_.x = x; 
   curPos_.y = y; 
 }
 
-void TDataPane::doUpdate() {
+void TWCSourceViewer::doUpdate() {
   trackCursor();
   if (indicator_) {
     indicator_->setValue(curPos_, false);
   }
 }
 
-void TDataPane::trackCursor() {
+void TWCSourceViewer::trackCursor() {
   setCursor(curPos_.x - delta.x, curPos_.y - delta.y);
   const auto x = std::max(curPos_.x - size.x + 1, min(delta.x, curPos_.x));
   const auto y = std::max(curPos_.y - size.y + 1, min(delta.y, curPos_.y));
   scrollTo(x, y);
 }
 
-TMenuItem& TDataPane::initContextMenu(TPoint) {
+TMenuItem& TWCSourceViewer::initContextMenu(TPoint) {
   return *new TMenuItem("~C~opy", cmCopy, kbCtrlC, hcNoContext, "Ctrl-C");
 }
 
-int TDataPane::getLineForMousePoint(TPoint m) {
+int TWCSourceViewer::getLineForMousePoint(TPoint m) {
   TPoint mouse = makeLocal(m);
   mouse.x = max(0, min(mouse.x, size.x - 1));
   mouse.y = max(0, min(mouse.y, size.y - 1));
   return mouse.y + delta.y;
 }
 
-void TDataPane::handleEvent(TEvent& event) {
+void TWCSourceViewer::handleEvent(TEvent& event) {
   TScroller::handleEvent(event);
   if (event.what & evMouseDown) {
     if ((event.mouse.buttons & mbLeftButton) && mouseInView(event.mouse.where)) {
@@ -224,7 +223,7 @@ void TDataPane::handleEvent(TEvent& event) {
 }
 
 
-void TDataPane::draw() {
+void TWCSourceViewer::draw() {
   const auto hilight_current = hilightCurrentLine();
   const auto normal_color = getColor(0x0301);
   const auto selected_color = getColor(0x201);
@@ -250,6 +249,6 @@ void TDataPane::draw() {
   }
 }
 
-void TDataPane::setState(ushort aState, Boolean enable) {
+void TWCSourceViewer::setState(ushort aState, Boolean enable) {
   TScroller::setState(aState, enable);
 }

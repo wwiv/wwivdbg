@@ -53,14 +53,6 @@ TWCListViewer::TWCListViewer(const TRect &bounds, ushort numColumns, TScrollBar 
   growMode = gfGrowHiX | gfGrowHiY;
 }
 
-TPalette& TWCListViewer::getPalette() const {
- return TListViewer::getPalette();
-}
-
-TColorAttr TWCListViewer::mapColor(uchar index) noexcept {
-  return TListViewer::mapColor(index);
-}
-
 TMenuItem& TWCListViewer::initContextMenu(TPoint) {
   return *new TMenuItem("<empty>", 0, kbNoKey);
 }

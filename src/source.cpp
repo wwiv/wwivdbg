@@ -53,14 +53,8 @@
 
 TSourcePane::TSourcePane(const TRect &bounds, TScrollBar *hsb, TScrollBar *vsb,
                          TIndicator *indicator, DebugProtocol *debug)
-    : TDataPane(bounds, hsb, vsb, indicator), debug_(debug) {
+    : TWCSourceViewer(bounds, hsb, vsb, indicator), debug_(debug) {
   context_menu_enabled = true;
-  if (debug_->attached()) {
-    enableCommand(cmBreakpointAdd);
-  }
-  else {
-    disableCommand(cmBreakpointAdd);
-  }
   normalCursor();
 }
 
@@ -69,35 +63,26 @@ bool TSourcePane::hilightCurrentLine() {
 }
 
 
-void TSourcePane::doUpdate() {
-  TDataPane::doUpdate();
-}
-
-void TSourcePane::handleEvent(TEvent& event) {
-  TDataPane::handleEvent(event);
-}
-
 TMenuItem& TSourcePane::initContextMenu(TPoint) {
   return // *new TMenuItem("~C~opy", cmCopy, kbCtrlC, hcNoContext, "Ctrl-C") + newLine() +
     *new TMenuItem("Add ~B~reakpoint", cmBreakpointAdd, kbCtrlB, hcNoContext, "Ctrl-B");
 }
 
-TScrollBar* TSourceWindow::standardScrollBar(ushort aOptions)
-{
+TScrollBar *TSourceWindow::standardScrollBar(ushort aOptions) {
   TRect r = getExtent();
-  if ((aOptions & sbVertical) != 0)
+  if ((aOptions & sbVertical) != 0) {
     r = TRect(r.b.x - 1, r.a.y + 1, r.b.x, r.b.y - 1);
-  else
+  } else {
     r = TRect(r.a.x + 18, r.b.y - 1, r.b.x - 2, r.b.y);
+  }
 
-  TScrollBar* s;
-  insert(s = new TScrollBar(r));
+  TScrollBar *s = new TScrollBar(r);
+  insert(s);
   if ((aOptions & sbHandleKeyboard) != 0) {
     s->options |= ofPostProcess;
   }
   return s;
 }
-
 
 TSourceWindow::TSourceWindow(TRect r, const std::string &title,
                              const std::string initial_module,
@@ -110,6 +95,14 @@ TSourceWindow::TSourceWindow(TRect r, const std::string &title,
   insert(indicator_ = new TIndicator(TRect(2, size.y - 1, 16, size.y)));
   insert(fp = new TSourcePane(getClipRect().grow(-1, -1), hsb, vsb, indicator_, debug.get()));
   fp->SetText(debug->source());
+
+  if (debug_->attached()) {
+    fp->enableCommand(cmBreakpointAdd);
+  }
+  else {
+    fp->disableCommand(cmBreakpointAdd);
+  }
+
 }
 
 TSourceWindow ::~TSourceWindow() = default;
