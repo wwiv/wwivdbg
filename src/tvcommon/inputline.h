@@ -72,15 +72,14 @@ namespace detail {
     out[SIZE - 1] = '\0';
     return s.size() <= SIZE;
   }
-
 }
 
 class TFormInputLine : public TInputLine {
 public:
-  TFormInputLine(const TRect& bounds, std::string* data, unsigned int aMaxLen, TValidator* aValid = nullptr)
-    : TInputLine(bounds, aMaxLen, aValid), data_(data) {}
-  TFormInputLine(std::string* data, unsigned int aMaxLen, TValidator* aValid = nullptr)
-    : TInputLine(TRect(0, 0, 10, 1), aMaxLen, aValid), data_(data) {}
+  TFormInputLine(const TRect& bounds, std::string* data, unsigned int maxLen, TValidator* valid = nullptr)
+    : TInputLine(bounds, maxLen, valid), data_(data) {}
+  TFormInputLine(std::string* data, unsigned int maxLen, TValidator* valid = nullptr)
+    : TInputLine(TRect(0, 0, 10, 1), maxLen, valid), data_(data) {}
   virtual ~TFormInputLine() = default;
   virtual void getData(void* rec);
   virtual void setData(void* rec);
@@ -94,10 +93,10 @@ template <typename T,
 class TFormNumberInputLine : public TInputLine {
 
 public:
-  TFormNumberInputLine(const TRect& bounds, T* data, TValidator* aValid = nullptr)
-    : TInputLine(bounds, std::numeric_limits<T>::digits10 + 2, aValid), data_(data) {}
-  TFormNumberInputLine(T* data, TValidator* aValid)
-    : TInputLine(TRect(0, 0, 10, 1), std::numeric_limits<T>::digits10 + 2, aValid), data_(data) {}
+  TFormNumberInputLine(const TRect& bounds, T* data, TValidator* valid)
+    : TInputLine(bounds, std::numeric_limits<T>::digits10 + 2, valid), data_(data) {}
+  TFormNumberInputLine(T* data, TValidator* valid)
+    : TFormNumberInputLine(TRect(0, 0, 10, 1), valid) {}
   TFormNumberInputLine(T* data) : TFormNumberInputLine(TRect(0, 0, 10, 1), data, nullptr) {}
   virtual ~TFormNumberInputLine() = default;
 
@@ -131,9 +130,12 @@ private:
 };
 
 
+// One item (label and data value) for use in a TFormCheckBoxes control.
 struct CheckBoxItem {
+  // Text for the checkbox in the UI
   std::string text;
-  bool value;
+  // pointer to the value for this checkbox item.
+  bool* value;
 };
 
 // TCheckBoxes like class that takes a vector of CheckBoxItems
@@ -145,7 +147,6 @@ public:
   virtual void setData(void* rec);
 
 private:
-  int32_t* data_{ nullptr };
   std::vector<CheckBoxItem>* items_;
 };
 

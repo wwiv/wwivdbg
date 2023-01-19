@@ -37,6 +37,7 @@ T *ValidView(TProgram *program, T *p) noexcept {
 }
 
 short execDialog(TDialog *d, void *data);
+short execDialog(TDialog* d);
 
 // Like message(...) but with an int param
 void* messageInt(TView* receiver, ushort what, ushort command, int info);

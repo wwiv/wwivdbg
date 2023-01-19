@@ -48,7 +48,7 @@
 #include <string>
 
 TFormColumn::TFormColumn(int x, int y, int pad, int labelWidth,
-                         int controlWidth, FormLabelPosition labelPos)
+                         int controlWidth, TFormColumn::LabelPosition labelPos)
     : x_(x), y_(y), pad_(pad), labelWidth_(labelWidth),
       controlWidth_(controlWidth), labelPos_(labelPos) {}
 
@@ -60,7 +60,7 @@ bool TFormColumn::add(const std::string& labelText, TView* control) {
 }
 
 int TFormColumn::width() const {
-  if (labelPos_ == FormLabelPosition::left) {
+  if (labelPos_ == TFormColumn::LabelPosition::left) {
     return pad_ + labelWidth_ + pad_ + controlWidth_ + pad_ + 1;
   } else {
     return (pad_ * 3) + std::max<int>(labelWidth_, controlWidth_) +  1;
@@ -69,19 +69,20 @@ int TFormColumn::width() const {
 
 int TFormColumn::height() const {
   int height = 3;
-  if (labelPos_ == FormLabelPosition::left) {
+  
+  if (labelPos_ == TFormColumn::LabelPosition::left) {
     for (const auto& item : items_) {
-      auto b = item.control->getBounds();
-      height += (b.b.y - b.a.y) + 1;
+      auto bounds = item.control->getBounds();
+      height += (bounds.b.y - bounds.a.y) + 1;
     }
     return height;
-  } else {
-    for (const auto& item : items_) {
-      auto b = item.control->getBounds();
-      height += (b.b.y - b.a.y) + 2;
-    }
-    return height;
+  } 
+  
+  for (const auto& item : items_) {
+    auto bounds = item.control->getBounds();
+    height += (bounds.b.y - bounds.a.y) + 2;
   }
+  return height;
 }
 
 void TFormColumn::updateLabelWidths() {
@@ -90,39 +91,44 @@ void TFormColumn::updateLabelWidths() {
   }
 }
 
+TDialog* TFormColumn::insertLabelLeftTo(TDialog* dialog, int btnPad, int btnX, int y) {
+  const int ctrlX = pad_ + labelWidth_ + pad_;
+  TRect lr(pad_, y, pad_ + labelWidth_, y + 1);
+  for (auto& item : items_) {
+    const auto bounds = item.control->getBounds();
+    const auto height = bounds.b.y - bounds.a.y;
+    TRect lr(pad_, y, pad_ + labelWidth_, y + 1);
+    TRect cr(ctrlX, y, ctrlX + controlWidth_, y + height);
+    item.control->setBounds(cr);
+    dialog->insert(item.control);
+    dialog->insert(new TLabel(lr, item.labelText, item.control));
+    y += height + 1;
+  }
+  return dialog;
+}
+
+TDialog* TFormColumn::insertLabelBelowTo(TDialog* dialog, int btnPad, int btnX, int y) {
+  TRect r(pad_, y, pad_ + std::max<int>(labelWidth_, controlWidth_), y + 1);
+  for (const auto& item : items_) {
+    auto lr = r;
+    auto cr = r;
+    cr.move(0, 1);
+    item.control->setBounds(cr);
+    dialog->insert(item.control);
+    dialog->insert(new TLabel(lr, item.labelText, item.control));
+    r.move(0, 3);
+  }
+  return dialog;
+}
 
 TDialog* TFormColumn::insertTo(TDialog* dialog) {
   updateLabelWidths();
   const int btnPad = pad_ + 1;
   const int btnX = labelWidth_ + pad_ + controlWidth_ + btnPad;
-  int y = y_ + 2;
-  if (labelPos_ == FormLabelPosition::left) {
-    const int ctrlX = pad_ + labelWidth_ + pad_;
-    TRect lr(pad_, y, pad_ + labelWidth_, y + 1);
-    for (auto& item : items_) {
-      const auto bounds = item.control->getBounds();
-      const auto height = bounds.b.y - bounds.a.y;
-      TRect lr(pad_, y, pad_ + labelWidth_, y + 1);
-      TRect cr(ctrlX, y, ctrlX + controlWidth_, y + height);
-      item.control->setBounds(cr);
-      dialog->insert(item.control);
-      dialog->insert(new TLabel(lr, item.labelText, item.control));
-      y += height+1;
-    }
+  if (labelPos_ == TFormColumn::LabelPosition::left) {
+    return insertLabelLeftTo(dialog, btnPad, btnX, y_ + 2);
   }
-  else {
-    TRect r(pad_, y, pad_ + std::max<int>(labelWidth_, controlWidth_), y + 1);
-    for (const auto& item : items_) {
-      auto lr = r;
-      auto cr = r;
-      cr.move(0, 1);
-      item.control->setBounds(cr);
-      dialog->insert(item.control);
-      dialog->insert(new TLabel(lr, item.labelText, item.control));
-      r.move(0, 3);
-    }
-  }
-  return dialog;
+  return insertLabelBelowTo(dialog, btnPad, btnX, y_ + 2);
 }
 
 TDialog* addButtons(TDialog* d, int buttons) {
@@ -152,8 +158,7 @@ TDialog* addButtons(TDialog* d, int buttons) {
 TDialog* createDialog(TFormColumn* c, const std::string& title, int buttons) {
   const int buttonHeight = buttons > 0 ? 3 : 0;
   TRect bounds(0, 0, c->width(), c->height() + buttonHeight);
-  TDialog* d = new TDialog(bounds, title);
-  c->insertTo(d);
+  auto* d = c->insertTo(new TDialog(bounds, title));
   return addButtons(d, buttons);
 }
 
@@ -161,8 +166,8 @@ TDialog* createDialog(TFormColumn* c1, TFormColumn* c2, const std::string& title
   const int buttonHeight = 3;
   TRect bounds(0, 0, c1->width() + 1 + c2->width(),
                std::max<int>(c1->height(), c2->height()) + buttonHeight);
-  TDialog* d = new TDialog(bounds, title);
-  c1->insertTo(d);
+
+  auto* d = c1->insertTo(new TDialog(bounds, title));
   c2->set_x(c1->x() + c1->width());
   c2->insertTo(d);
 

@@ -60,8 +60,9 @@ public:
   void UpdateBreakpointWindow();
 
 private:
-  TBreakpointsPane* fp;
-  TScrollBar* hsb, * vsb;
+  TBreakpointsPane* fp{ nullptr };
+  TScrollBar* hsb{ nullptr };
+  TScrollBar* vsb{ nullptr };
   std::shared_ptr<DebugProtocol> debug_;
 };
 

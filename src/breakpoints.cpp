@@ -210,16 +210,13 @@ TColorAttr TBreakpointsWindow::mapColor(uchar index) noexcept {
 }
 
 void showInfoDialog(Breakpoint& bp) {
-  TRect bounds(0, 0, 40, 11);
-  TRect fake{ 0, 0, 10, 1 };
-  TFormColumn c(0, 0, 2, 12, 12, FormLabelPosition::left);
+  TFormColumn c(12, 12, TFormColumn::LabelPosition::left);
   c.add("~M~odule:", new TFormInputLine(&bp.module, 128));
   c.add("~L~ine:", new TFormNumberInputLine(&bp.line));
   c.add("~R~emote ID:", new TFormNumberInputLine(&bp.remote_id));
-  int x = 0;
 
   std::vector<CheckBoxItem> items;
-  items.emplace_back("Yes", bp.published);
+  items.emplace_back("Yes", &bp.published);
   c.add("~P~ublished:", new TFormCheckBoxes(&items));
 
   TForm f;

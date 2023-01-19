@@ -39,6 +39,12 @@ short execDialog(TDialog *d, void *data) {
   return cmCancel;
 }
 
+short execDialog(TDialog* d) {
+  char unused[1000];
+  return execDialog(d, &unused);
+}
+
+
 void* messageInt(TView* receiver, ushort what, ushort command, int info) {
   if (receiver == nullptr) {
     return 0;

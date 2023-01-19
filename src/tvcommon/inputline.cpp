@@ -58,7 +58,10 @@ static bool to_char_array_trim(char(&out)[SIZE], const std::string& s) noexcept 
 
 void TFormInputLine::getData(void* rec) {
   // Fetch from internal model
-  data_->resize(maxLen + 1);
+
+  // elide warning about uint overflow.
+  const auto m = static_cast<size_t>(maxLen);
+  data_->resize(m + 1);
   TInputLine::getData(&data_->front());
   if (const auto idx = data_->find('\0'); idx != std::string::npos) {
     data_->resize(idx);
@@ -85,7 +88,8 @@ TFormCheckBoxes::TFormCheckBoxes(std::vector<CheckBoxItem>* items) noexcept
 
     delete strings;
     strings = new TStringCollection(items->size(), 10);
-
+    
+    // repopulate the string collection we deleted above.
     int count = 0;
     for (const auto& i : *items) {
       strings->atInsert(count++, newStr(i.text.c_str()));
@@ -100,7 +104,7 @@ void TFormCheckBoxes::getData(void* rec) {
   int pos = 0;
   for (auto& item : *items_) {
     bool set = value & (1 << pos++);
-    item.value = set;
+    *item.value = set;
   }
 }
 
@@ -108,7 +112,7 @@ void TFormCheckBoxes::setData(void* rec) {
   uint32_t v{ 0 };
   int pos = 0;
   for (const auto& item : *items_) {
-    if (item.value) {
+    if (*item.value == true) {
       v |= (1 << pos);
     }
     ++pos;

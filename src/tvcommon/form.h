@@ -30,12 +30,15 @@
 #include <string_view>
 #include <vector>
 
-enum class FormLabelPosition { left, above };
 
 class TFormColumn {
 public:
+  enum class LabelPosition { left, above };
+
   TFormColumn(int x, int y, int pad, int labelWidth, int controlWidth,
-              FormLabelPosition labelPos);
+              LabelPosition labelPos);
+  TFormColumn(int labelWidth, int controlWidth, LabelPosition labelPos)
+      : TFormColumn(0, 0, 2, labelWidth, controlWidth, labelPos) {}
   ~TFormColumn();
 
   bool add(const std::string& labelText, TView* control);
@@ -50,21 +53,22 @@ public:
   TDialog* insertTo(TDialog* dialog);
 
 private:
-  struct Item { std::string labelText; TView* control; };
+  struct Item {
+    std::string labelText;
+    TView *control;
+  };
+
+  TDialog* insertLabelLeftTo(TDialog* dialog, int btnPad, int btnX, int y);
+  TDialog* insertLabelBelowTo(TDialog* dialog, int btnPad, int btnX, int y);
+
   int x_{ 0 };
   int y_{ 0 };
   int pad_{ 0 };
   int labelWidth_{ 0 };
   int controlWidth_{ 0 };
-  FormLabelPosition labelPos_{ FormLabelPosition::left };
+  LabelPosition labelPos_{ LabelPosition::left };
   
   std::vector<Item> items_;
-};
-
-struct Button {
-  std::string label;
-  int command;
-  int flags;
 };
 
 class TForm {
@@ -75,6 +79,12 @@ public:
   void addButton(const std::string& label, int command, int flags);
   std::optional<TDialog*> createDialog(const std::string& title);
 private:
+
+  struct Button {
+    std::string label;
+    int command;
+    int flags;
+  };
 
   std::vector< TFormColumn*> cols_;
   std::vector<Button> buttons_;
