@@ -355,6 +355,17 @@ void TDebuggerApp::handleCommand(TEvent &event) {
                "World\nthis\nis\na\ntest\n\nHello\nWorld\nthis\nis\na\ntest\n\n"
                "Hello\nWorld\n\n");
   } break;
+  case cmHelpNewBpDialog: {
+    Breakpoint b;
+    b.module = "FooModule";
+    b.line = 1222;
+    b.published = true;
+    b.remote_id = 2112;
+    b.hit_count = 11;
+    showInfoDialog2(b);
+    clearEvent(event);
+
+  } break;
   default:
     return;
   }

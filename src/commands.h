@@ -41,6 +41,7 @@ constexpr int cmBreakpointWindowProperties = 122;
 // Help
 constexpr int cmHelpAbout = 130;
 constexpr int cmHelpFoo = 131;
+constexpr int cmHelpNewBpDialog = 132;
 
 // Other commands
 constexpr int cmFindWindow = 1000;

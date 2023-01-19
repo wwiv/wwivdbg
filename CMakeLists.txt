@@ -19,6 +19,8 @@ find_package(httplib CONFIG REQUIRED)
 
 add_library(tvcommon 
   "src/tvcommon/datapane.cpp"
+  "src/tvcommon/form.cpp"
+  "src/tvcommon/inputline.cpp"
   "src/tvcommon/listwindow.cpp"
 )
 target_compile_features(tvcommon PRIVATE cxx_std_17)

@@ -29,6 +29,8 @@
 #include <string>
 #include <vector>
 
+struct Breakpoint;
+
 class TBreakpointsPane : public TWCListViewer {
 
 public:
@@ -63,6 +65,8 @@ private:
   TScrollBar* hsb, * vsb;
   std::shared_ptr<DebugProtocol> debug_;
 };
+
+void showInfoDialog2(Breakpoint& bp);
 
 
 #endif

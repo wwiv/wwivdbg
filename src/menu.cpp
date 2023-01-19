@@ -106,8 +106,9 @@ TMenuBar *CreateMenuBar(TRect &r) {
       *new TMenuItem("~C~lose", cmClose, kbCtrlW, hcNoContext, "Ctrl+W");
 
   TSubMenu &menuHelp = *new TSubMenu("~H~elp", kbAltH) +
-                       *new TMenuItem("Test Data", cmHelpFoo, kbNoKey) +
-                       newLine() +
+    *new TMenuItem("Test Data", cmHelpFoo, kbNoKey) +
+    *new TMenuItem("Test Breakpoint Dialog", cmHelpNewBpDialog, kbNoKey) +
+    newLine() +
                        *new TMenuItem("~A~bout...", cmHelpAbout, kbNoKey);
 
   r.b.y = r.a.y + 1;
