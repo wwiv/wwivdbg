@@ -138,8 +138,12 @@ void TBreakpointsWindow::handleEvent(TEvent& event) {
 void TBreakpointsWindow::UpdateBreakpointWindow() {
   std::vector< std::string> lines;
   for (const auto& b : debug_->breakpoints().breakpoints) {
+    if (b.typ == "step") {
+      // Ignore step breakpoints for the display, they are internal.
+      continue;
+    }
     const auto l =
-      fmt::format("{:<15} | {:<6} | {:04d}", b.module, "line", b.line);
+      fmt::format("{:<15} | {:<6} | {:04d}", b.module, b.typ, b.line);
     lines.emplace_back(l);
   }
   fp->setList(lines);
