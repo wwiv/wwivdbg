@@ -222,14 +222,31 @@ void TWCSourceViewer::handleEvent(TEvent& event) {
   }
 }
 
+TColorAttr TWCSourceViewer::mapColor(uchar c) noexcept {
+  switch (c) {
+  case 11: // Current Line
+    return 0x30;
+  case 12: // Breakpoint
+    return 0x4E;
+  default:
+    return TScroller::mapColor(c);
+  }
+}
+
+int TWCSourceViewer::lineColor(int line) {
+  if (line == selected_row_ - 1 && hilightCurrentLine()) {
+    return 11;
+  }
+  if (auto it = lineColorMap.find(line + 1); it != std::end(lineColorMap)) {
+    return it->second;
+  }
+  return 1;
+}
 
 void TWCSourceViewer::draw() {
-  const auto hilight_current = hilightCurrentLine();
-  const auto normal_color = getColor(0x0301);
-  const auto selected_color = getColor(0x201);
   for (int i = 0; i < size.y; i++) {
     int j = i + delta.y;
-    const auto c = (hilight_current && j == selected_row_ - 1) ? 2 : 1;
+    const auto c = lineColor(j);
     auto color = getColor(c);
     TDrawBuffer b;
     b.moveChar(0, ' ', color, size.x);
@@ -249,6 +266,3 @@ void TWCSourceViewer::draw() {
   }
 }
 
-void TWCSourceViewer::setState(ushort aState, Boolean enable) {
-  TScroller::setState(aState, enable);
-}

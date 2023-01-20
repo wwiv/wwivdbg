@@ -55,6 +55,7 @@ public:
   void SetText(const std::vector<std::string> &text);
   void SetText(const std::string &text);
   virtual void setState(ushort aState, Boolean enable);
+  void UpdateLineColorMap();
 
 private:
   TSourcePane* fp;

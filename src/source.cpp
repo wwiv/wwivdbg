@@ -94,6 +94,7 @@ TSourceWindow::TSourceWindow(TRect r, const std::string &title,
   vsb = standardScrollBar(sbVertical | sbHandleKeyboard);
   insert(indicator_ = new TIndicator(TRect(2, size.y - 1, 16, size.y)));
   insert(fp = new TSourcePane(getClipRect().grow(-1, -1), hsb, vsb, indicator_, debug.get()));
+  UpdateLineColorMap();
   fp->SetText(debug->source());
 
   if (debug_->attached()) {
@@ -123,12 +124,16 @@ void TSourceWindow::handleEvent(TEvent &event) {
   case cmBreakpointAdd: {
     const auto line = fp->currentLine();
     debug_->CreateBreakpoint(module_, "line", line);
+    UpdateLineColorMap();
+    fp->draw();
     clearEvent(event);
     message(TProgram::deskTop, evBroadcast, cmBreakpointsChanged, 0);
     return;
   } break;
   case cmDebugSourceChanged:
     fp->SetText(debug_->source());
+    UpdateLineColorMap();
+    fp->draw();
     clearEvent(event);
     return;
   case cmBroadcastDebugStateChanged: {
@@ -139,6 +144,7 @@ void TSourceWindow::handleEvent(TEvent &event) {
     if (!s.module.empty()) {
       module_ = s.module;
     }
+    UpdateLineColorMap();
     fp->draw();
     if (debug_->attached()) {
       enableCommand(cmBreakpointAdd);
@@ -186,4 +192,11 @@ void TSourceWindow::setState(ushort state, Boolean enable) {
   }
 }
 
+void TSourceWindow::UpdateLineColorMap() {
+  std::map<int, int> m;
+  for (const auto& b : debug_->breakpoints().breakpoints) {
+    m[b.line] = 12; // breakpoint
+  }
+  fp->setLineColorMap(m);
+}
 

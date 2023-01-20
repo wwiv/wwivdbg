@@ -25,6 +25,7 @@
 
 #include "tvision/tv.h"
 
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -36,7 +37,6 @@ public:
   ~TWCSourceViewer() = default;
   virtual void draw() override;
   virtual void handleEvent(TEvent& event) override;
-  virtual void setState(ushort aState, Boolean enable);
 
   // Override to populate a context menu.
   virtual TMenuItem& initContextMenu(TPoint);
@@ -48,7 +48,9 @@ public:
 
   // Should the current line be hilighted
   virtual bool hilightCurrentLine() { return false; }
-  // Should this view offer a context menu?
+  virtual TColorAttr mapColor(uchar) noexcept;
+  void setLineColorMap(const std::map<int, int>& m) { lineColorMap = m; }
+  int lineColor(int line);
 
   // Sets the current position and also selects the row.
   void SetSelectedPosition(int pos, int row, int col);
@@ -72,7 +74,7 @@ private:
   int selected_row_{ -1 };
   TIndicator* indicator_{ nullptr };
   TPoint curPos_{ 0, 0 };
-
+  std::map<int, int> lineColorMap;
 };
 
 
