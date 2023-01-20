@@ -51,6 +51,7 @@ public:
 
   void updateLabelWidths();
   TDialog* insertTo(TDialog* dialog);
+  bool selectFirstControl();
 
 private:
   struct Item {
@@ -73,11 +74,16 @@ private:
 
 class TForm {
 public:
+  TForm(TFormColumn* c1, TFormColumn* c2) { add(c1); add(c2); }
+  TForm(TFormColumn* c) { add(c); }
   TForm() = default;
   ~TForm() = default;
   void add(TFormColumn* c);
   void addButton(const std::string& label, int command, int flags);
+  void addOKButton();
+  void addCancelButton();
   std::optional<TDialog*> createDialog(const std::string& title);
+
 private:
 
   struct Button {
@@ -86,12 +92,10 @@ private:
     int flags;
   };
 
-  std::vector< TFormColumn*> cols_;
+  std::vector<TFormColumn*> cols_;
   std::vector<Button> buttons_;
 };
 
-TDialog* createDialog(TFormColumn* c, const std::string& title, int buttons);
-TDialog* createDialog(TFormColumn* c1, TFormColumn* c2, const std::string& title, int buttons);
 
 #endif
 

@@ -131,6 +131,14 @@ TDialog* TFormColumn::insertTo(TDialog* dialog) {
   return insertLabelBelowTo(dialog, btnPad, btnX, y_ + 2);
 }
 
+bool TFormColumn::selectFirstControl() {
+  if (items_.empty()) {
+    return false;
+  }
+  items_.front().control->select();
+  return true;
+}
+
 TDialog* addButtons(TDialog* d, int buttons) {
   constexpr int btnPadding = 4;
   constexpr int btnWidth = 10;
@@ -155,24 +163,6 @@ TDialog* addButtons(TDialog* d, int buttons) {
   return d;
 }
 
-TDialog* createDialog(TFormColumn* c, const std::string& title, int buttons) {
-  const int buttonHeight = buttons > 0 ? 3 : 0;
-  TRect bounds(0, 0, c->width(), c->height() + buttonHeight);
-  auto* d = c->insertTo(new TDialog(bounds, title));
-  return addButtons(d, buttons);
-}
-
-TDialog* createDialog(TFormColumn* c1, TFormColumn* c2, const std::string& title, int buttons) {
-  const int buttonHeight = 3;
-  TRect bounds(0, 0, c1->width() + 1 + c2->width(),
-               std::max<int>(c1->height(), c2->height()) + buttonHeight);
-
-  auto* d = c1->insertTo(new TDialog(bounds, title));
-  c2->set_x(c1->x() + c1->width());
-  c2->insertTo(d);
-
-  return addButtons(d, buttons);
-}
 
 void TForm::add(TFormColumn* c) {
   cols_.emplace_back(c);
@@ -181,6 +171,10 @@ void TForm::add(TFormColumn* c) {
 void TForm::addButton(const std::string& label, int command, int flags) {
   buttons_.emplace_back(label, command, flags);
 }
+
+void TForm::addOKButton() { addButton("~O~K", cmOK, bfDefault); }
+void TForm::addCancelButton() { addButton("C~a~ncel", cmCancel, bfNormal); }
+
 
 std::optional<TDialog*> TForm::createDialog(const std::string& title) {
   if (cols_.empty()) {
@@ -222,6 +216,7 @@ std::optional<TDialog*> TForm::createDialog(const std::string& title) {
     end_x -= btnPadding;
   }
 
+  cols_.front()->selectFirstControl();
   return d;
 }
 

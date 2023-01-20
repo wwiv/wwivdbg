@@ -14,7 +14,6 @@
  * language governing permissions and limitations under the License.
  */
 
-
 #define Uses_MsgBox
 #define Uses_TApplication
 #define Uses_TButton
@@ -84,15 +83,17 @@ TMenuBar *CreateMenuBar(TRect &r) {
       *new TMenuItem("~L~ocal Variables", cmViewVars, kbNoKey) +
       *new TMenuItem("Basic S~o~urce", cmViewSource, kbAltO, hcNoContext, "Alt-O");
 
-  TSubMenu &menuDebug =
-      *new TSubMenu("~D~ebug", kbAltD) +
-      *new TMenuItem("~R~un", cmDebugRun, kbF9, hcNoContext, "F9") +
-      *new TMenuItem("~T~race Into", cmDebugTraceIn, kbF7, hcNoContext, "F7") +
-      *new TMenuItem("~S~tep Over", cmDebugStepOver, kbF8, hcNoContext, "F8") +
-      newLine() + 
-      *new TMenuItem("~A~ttach to BBS", cmDebugAttach, kbNoKey) +
-      *new TMenuItem("D~e~tach from BBS", cmDebugDetach, kbNoKey);
-
+  TSubMenu& menuDebug =
+    *new TSubMenu("~D~ebug", kbAltD) +
+    *new TMenuItem("~R~un", cmDebugRun, kbF9, hcNoContext, "F9") +
+    *new TMenuItem("~T~race Into", cmDebugTraceIn, kbF7, hcNoContext, "F7") +
+    *new TMenuItem("~S~tep Over", cmDebugStepOver, kbF8, hcNoContext, "F8") +
+    newLine() +
+    *new TMenuItem("~A~ttach to BBS", cmDebugAttach, kbNoKey) +
+    *new TMenuItem("D~e~tach from BBS", cmDebugDetach, kbNoKey) +
+    newLine() +
+    *new TMenuItem("Se~t~tings", cmSettings, kbNoKey)
+    ;
 
   TSubMenu &menuWindows =
       *new TSubMenu("~W~indows", kbAltW) +

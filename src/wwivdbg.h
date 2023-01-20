@@ -36,6 +36,11 @@ class TBreakpointsWindow;
 class TSourceWindow;
 class TStackWindow;
 
+struct Settings {
+  std::string host{ "127.0.0.1" };
+  int port{ 9948 };
+};
+
 class TDebuggerApp : public TApplication {
 
 public:
@@ -54,6 +59,9 @@ public:
   virtual void getEvent(TEvent& event) override;
   virtual void idle() override;
 
+  void loadSettings();
+  void saveSettings();
+
 private:
   TEditWindow* openEditor(const std::string& fileName, Boolean visible);
   TStackWindow* findStackWindow();
@@ -64,6 +72,7 @@ private:
   void fileNew();
   void changeDir();
 
+  bool SettingsDialog();
   void ShowAboutBox();
 
   int windowNumber_{ 0 };
@@ -78,9 +87,12 @@ private:
   bool need_update_message_{ false };
   bool async_update_remote_error_{ false };
   bool async_thread_need_to_exit_{ false };
+
+  Settings settings_;
 };
 
 TDialog* createFindDialog();
 TDialog* createReplaceDialog();
+
 
 #endif

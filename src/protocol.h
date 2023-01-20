@@ -116,6 +116,8 @@ public:
   void set_attached(bool a);
   void NewLineBreakpoint(const std::string& module, int line);
   void UpdateLocalBreakpoints();
+  void setHost(const std::string& host) { host_ = host; }
+  void setPort(int port) { port_ = port; }
 
 private:
   std::optional<std::string> Get(const std::string &part, bool handleError = true);
@@ -127,8 +129,8 @@ private:
   mutable std::mutex mu_;
   TApplication* app_{ nullptr };
   TView* desktop_{ nullptr };
-  const std::string host_{ "127.0.0.1" };
-  const int port_{ 9948 };
+  std::string host_{ "127.0.0.1" };
+  int port_{ 9948 };
   bool attached_{false};
 
   std::string source_;

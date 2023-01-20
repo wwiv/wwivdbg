@@ -32,6 +32,7 @@ constexpr int cmDebugTraceIn = 111;
 constexpr int cmDebugStepOver = 112;
 constexpr int cmDebugAttach = 113;
 constexpr int cmDebugDetach = 114;
+constexpr int cmSettings = 115;
 
 // Other debug
 constexpr int cmBreakpointAdd = 120;

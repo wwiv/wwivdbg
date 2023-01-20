@@ -164,7 +164,7 @@ void showInfoDialog(Breakpoint& bp) {
   f.addButton("~O~K", cmOK, bfDefault);
   f.addButton("C~a~ncel", cmCancel, bfNormal);
   
-  if (auto o = f.createDialog("Breakpoints2")) {
+  if (auto o = f.createDialog("Breakpoints")) {
     char unused[1000];
     execDialog(o.value(), &unused);
   }

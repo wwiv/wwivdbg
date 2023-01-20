@@ -42,7 +42,10 @@
 #define Uses_TSubMenu
 
 #include <chrono>
+#include <fstream>
 #include "tvision/tv.h"
+#include "tvcommon/form.h"
+#include "tvcommon/inputline.h"
 #include "fmt/format.h"
 #include "breakpoints.h"
 #include "commands.h"
@@ -57,8 +60,21 @@
 #include <memory>
 #include <string>
 #include <thread>
+#include <nlohmann/json.hpp>
 
 using namespace std::chrono;
+
+
+void to_json(nlohmann::json& j, const Settings& p) {
+  j = nlohmann::json{
+    {"host", p.host},
+    {"port", p.port} };
+}
+
+void from_json(const nlohmann::json& j, Settings& p) {
+  j.at("host").get_to(p.host);
+  j.at("port").get_to(p.port);
+}
 
 
 TMenuBar *TDebuggerApp::initMenuBar(TRect r) { 
@@ -176,7 +192,7 @@ TBreakpointsWindow *TDebuggerApp::findBreakpointsWindow() {
   ptrdiff_t cmd = cmViewBreakpoints;
   if (auto *o = message(deskTop, evBroadcast, cmFindWindow,
                         reinterpret_cast<void *>(cmd))) {
-    TBreakpointsWindow *window = reinterpret_cast<TBreakpointsWindow *>(o);
+    auto *window = reinterpret_cast<TBreakpointsWindow *>(o);
     window->select();
     return window;
   }
@@ -194,10 +210,11 @@ TDebuggerApp::TDebuggerApp(int argc, char **argv)
     : TProgInit(TDebuggerApp::initStatusLine, TDebuggerApp::initMenuBar,
                 TDebuggerApp::initDeskTop),
       TApplication() {
+  loadSettings();
   UpdateInitialEditorCommandState(this);
   cascade();
 
-  debug_ = std::make_shared<DebugProtocol>(this, deskTop, "127.0.0.1", 9948);
+  debug_ = std::make_shared<DebugProtocol>(this, deskTop, settings_.host, settings_.port);
   disableCommand(cmDebugDetach);
   attached_cmds_ += cmDebugDetach;
   attached_cmds_ += cmDebugRun;
@@ -233,6 +250,26 @@ TDebuggerApp::TDebuggerApp(int argc, char **argv)
     std::this_thread::sleep_for(std::chrono::seconds(5));
   }
   });
+
+}
+
+using json = nlohmann::json;
+static constexpr char SETTINGS_JSON_FILENAME[] = "wwivdbg.json";
+
+void TDebuggerApp::loadSettings() {
+  std::ifstream f(SETTINGS_JSON_FILENAME);
+  if (f.is_open()) {
+    json data = json::parse(f);
+    settings_ = data.get<Settings>();
+  }
+}
+
+void TDebuggerApp::saveSettings() {
+  std::ofstream f(SETTINGS_JSON_FILENAME);
+  if (f.is_open()) {
+    json data = settings_;
+    f << std::setw(4) << data << std::endl;
+  }
 }
 
 TDebuggerApp::~TDebuggerApp() { 
@@ -349,6 +386,12 @@ void TDebuggerApp::handleCommand(TEvent &event) {
   case cmHelpAbout:
     ShowAboutBox();
     break;
+  case cmSettings: {
+    if (SettingsDialog()) {
+      debug_->setHost(settings_.host);
+      debug_->setPort(settings_.port);
+    }
+  } break;
   case cmHelpFoo: {
     auto *s = findSourceWindow();
     s->SetText("this\nis\na\ntest\n\nHello\nWorld\nthis\nis\na\ntest\n\nHello\n"
@@ -404,9 +447,25 @@ void TDebuggerApp::ShowAboutBox() {
   executeDialog(aboutBox);
 }
 
+bool TDebuggerApp::SettingsDialog() {
+  TFormColumn c(8, 30, TFormColumn::LabelPosition::left);
+  c.add("Host:", new TFormInputLine(&settings_.host, 80));
+  c.add("Port:", new TFormNumberInputLine(&settings_.port));
+  TForm form(&c);
+  form.addOKButton();
+  if (auto o = form.createDialog("Settings")) {
+    if (execDialog(o.value()) == cmOK) {
+      saveSettings();
+      return true;
+    }
+  }
+  return false;
+}
+
 int main(int argc, char **argv) {
   TDebuggerApp editorApp(argc, argv);
   editorApp.run();
   editorApp.shutDown();
   return 0;
 }
+
