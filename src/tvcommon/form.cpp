@@ -139,30 +139,6 @@ bool TFormColumn::selectFirstControl() {
   return true;
 }
 
-TDialog* addButtons(TDialog* d, int buttons) {
-  constexpr int btnPadding = 4;
-  constexpr int btnWidth = 10;
-  const int y = d->getBounds().b.y - 3;
-  int end_x = d->getBounds().b.x - 3;
-  bool hadDefault = false;
-  if (buttons & mfOKButton) {
-    TRect r(end_x - btnWidth, y, end_x, y + 2);
-    d->insert(new TButton(r, "~O~K", cmCancel, !hadDefault ? bfNormal : bfDefault));
-    hadDefault =  true;
-    end_x -= btnWidth;
-    end_x -= btnPadding;
-  }
-  if (buttons & mfCancelButton) {
-    TRect r(end_x - btnWidth, y, end_x, y + 2);
-    d->insert(new TButton(r, "C~a~ncel", cmCancel, !hadDefault ? bfNormal : bfDefault));
-    hadDefault = true;
-    end_x -= btnWidth;
-    end_x -= btnPadding;
-  }
-
-  return d;
-}
-
 
 void TForm::add(TFormColumn* c) {
   cols_.emplace_back(c);
@@ -202,18 +178,14 @@ std::optional<TDialog*> TForm::createDialog(const std::string& title) {
   }
 
   // Add buttons
-
   constexpr int btnPadding = 4;
   constexpr int btnWidth = 10;
   const int y = d->getBounds().b.y - 3;
   int end_x = d->getBounds().b.x - 3;
-  bool hadDefault = false;
   for (auto& b : buttons_) {
     TRect r(end_x - btnWidth, y, end_x, y + 2);
-    auto* button = new TButton(r, b.label, b.command, b.flags);
-    d->insert(button);
-    end_x -= btnWidth;
-    end_x -= btnPadding;
+    d->insert(new TButton(r, b.label, b.command, b.flags));
+    end_x -= (btnWidth + btnPadding);
   }
 
   cols_.front()->selectFirstControl();
